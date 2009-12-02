@@ -35,10 +35,6 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 		}
 	}
 	
-	private void validerCodeBareme(String code) {
-		
-	}
-	
 	public Bareme obtenirBaremeMensuel(int annee, String codeCanton, String code){
 		if (annee < 2010 && "GE".equals(codeCanton.toUpperCase())) {
 			return daoge.obtenirBaremeMensuel(annee, codeCanton, CodeTarifaireGE.getParCode(code));

@@ -29,8 +29,12 @@
 	<bean name="serviceBaremeDaoGe" class="ch.ge.afc.baremeis.service.dao.fichierge.BaremeImpotSourceFichierGEPlatDao">
 	</bean>
 	
-	<bean name="serviceBareme" class="ch.ge.afc.baremeis.service.ServiceBaremeImpotSourceImpl">
+	<bean name="serviceBaremeSansCache" class="ch.ge.afc.baremeis.service.ServiceBaremeImpotSourceImpl">
 		<property name="dao" ref="serviceBaremeDao"/>
 		<property name="daoge" ref="serviceBaremeDaoGe"/>
+	</bean>
+	
+	<bean name="serviceBareme" class="ch.ge.afc.baremeis.service.ServiceBaremeImpotSourceCache">
+		<property name="cible" ref="serviceBaremeSansCache"/>
 	</bean>
 </beans>

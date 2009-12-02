@@ -23,5 +23,14 @@
 			<property name="fournisseurRegleImpotCantonal" ref="fournisseurRegleImpotCantonalGE"/>
 	</bean>
 	
+	<bean name="serviceBaremeDao" class="ch.ge.afc.baremeis.service.dao.fichierfederal.BaremeImpotSourceFichierPlatDao">
+	</bean>
 	
+	<bean name="serviceBaremeDaoGe" class="ch.ge.afc.baremeis.service.dao.fichierge.BaremeImpotSourceFichierGEPlatDao">
+	</bean>
+	
+	<bean name="serviceBareme" class="ch.ge.afc.baremeis.service.ServiceBaremeImpotSourceImpl">
+		<property name="dao" ref="serviceBaremeDao"/>
+		<property name="daoge" ref="serviceBaremeDaoGe"/>
+	</bean>
 </beans>

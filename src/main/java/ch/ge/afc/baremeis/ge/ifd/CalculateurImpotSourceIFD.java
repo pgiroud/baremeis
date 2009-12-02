@@ -199,7 +199,8 @@ public class CalculateurImpotSourceIFD extends ReglePeriodique implements
 
 		BigDecimal cotisations = BigDecimal.ZERO;
 		for (ICalculCotisationSociale regle : this.reglesCotisations) {
-			cotisations = cotisations.add(regle.calcul(revenuBrut));
+			BigDecimal cotisation = regle.calcul(revenuBrut);
+			cotisations = cotisations.add(cotisation);
 		}
 		BigDecimal assuranceMaladieEtIntCapitEpargne = this.estimerMontantAssuranceMaladieEtIntCapitEpargne(situation, revenuBrut);
 		logger.debug("IFD : ass. mal. et int. capit. " + format.format(assuranceMaladieEtIntCapitEpargne));

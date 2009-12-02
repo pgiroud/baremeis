@@ -25,7 +25,6 @@ import ch.ge.afc.calcul.impot.taxation.pp.ProducteurImpot;
 import ch.ge.afc.util.BigDecimalUtil;
 import ch.ge.afc.util.ExplicationDetailleTexteBuilder;
 import ch.ge.afc.util.IExplicationDetailleeBuilder;
-import ch.ge.afc.util.TypeArrondi;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -106,7 +105,14 @@ public class FournisseurGE implements FournisseurCalculateurIS {
 	}
 
 	protected List<ICalculCotisationSociale> construireRegleCotisationSociale(int annee) {
-		final CalculCotisationsSocialesSalarieGE calculateurCotiSociale = getCalculateurCotiSociale(annee);
+		final CalculCotisationsSocialesSalarieGE calculateurCotiSociale;
+		if (2010 == annee) {
+			// Le taux de cotisation à l'assurance maternité est de 0.045 % en 2010 mais
+			// les barèmes de l'impôt source n'ont pas pris en compte cette modification
+			calculateurCotiSociale = getCalculateurCotiSociale(2009);
+		} else {
+			calculateurCotiSociale = getCalculateurCotiSociale(annee);
+		}
 		List<ICalculCotisationSociale> cotisations = new ArrayList<ICalculCotisationSociale>();
 		cotisations.add(new ICalculCotisationSociale() {
 			@Override
@@ -216,28 +222,28 @@ public class FournisseurGE implements FournisseurCalculateurIS {
 				iter.remove();
 			}
 		}
-		// En 2010, le taux assurance maternité n'est pas correct : il est resté celui de 2009
-		if (2010 == annee) {
-			for (Iterator<ICalculCotisationSociale> iter = cotis.iterator(); iter.hasNext();) {
-				ICalculCotisationSociale regle = iter.next();
-				if ("Cotisations maternité adoption".equals(regle.getNomCotisation())) {
-					iter.remove();
-				}
-			}
-			// Création de la cotisation avec taux de 2009
-			ICalculCotisationSociale cotiAMat = new ICalculCotisationSociale() {
-
-				@Override
-				public BigDecimal calcul(BigDecimal revenuBrut) {
-					return TypeArrondi.CINQ_CTS.arrondirMontant(revenuBrut.multiply(new BigDecimal("0.0002")));
-				}
-
-				@Override
-				public String getNomCotisation() {return "Cotisations maternité adoption";}
-				
-			};
-			cotis.add(cotiAMat);
-		}
+//		// En 2010, le taux assurance maternité n'est pas correct : il est resté celui de 2009
+//		if (2010 == annee) {
+//			for (Iterator<ICalculCotisationSociale> iter = cotis.iterator(); iter.hasNext();) {
+//				ICalculCotisationSociale regle = iter.next();
+//				if ("Cotisations maternité adoption".equals(regle.getNomCotisation())) {
+//					iter.remove();
+//				}
+//			}
+//			// Création de la cotisation avec taux de 2009
+//			ICalculCotisationSociale cotiAMat = new ICalculCotisationSociale() {
+//
+//				@Override
+//				public BigDecimal calcul(BigDecimal revenuBrut) {
+//					return TypeArrondi.CINQ_CTS.arrondirMontant(revenuBrut.multiply(new BigDecimal("0.0002")));
+//				}
+//
+//				@Override
+//				public String getNomCotisation() {return "Cotisations maternité adoption";}
+//				
+//			};
+//			cotis.add(cotiAMat);
+//		}
 		calculateur.setRegleCalculCotisations(cotis);
 		calculateur.setTaux2emePilier(BigDecimalUtil.parseTaux("5 %"));
 		

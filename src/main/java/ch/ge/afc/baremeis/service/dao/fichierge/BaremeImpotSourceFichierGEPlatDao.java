@@ -38,7 +38,7 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 	
 	private String getNomFichier(int annee) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(annee).append("/bar_is").append(annee).append("_ascii.txt");
+		builder.append(annee).append("/ge/bar_is").append(annee).append("_ascii.txt");
 		return builder.toString();
 	}
 	

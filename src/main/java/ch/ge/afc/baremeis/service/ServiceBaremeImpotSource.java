@@ -3,6 +3,7 @@
  */
 package ch.ge.afc.baremeis.service;
 
+import java.util.List;
 import java.util.Set;
 
 import ch.ge.afc.calcul.bareme.Bareme;
@@ -17,4 +18,5 @@ public interface ServiceBaremeImpotSource {
 	
 	Bareme obtenirBaremeMensuel(int annee, String codeCanton, String code);
 	
+	List<BaremeDisponible> baremeDisponible();
 }

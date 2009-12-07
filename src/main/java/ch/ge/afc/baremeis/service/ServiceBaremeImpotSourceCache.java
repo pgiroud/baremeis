@@ -4,6 +4,7 @@
 package ch.ge.afc.baremeis.service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -86,7 +87,12 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 		return codeTarifaireParCantonAnnee.get(cle);
 	}
 
-	
+	@Override
+	public List<BaremeDisponible> baremeDisponible() {
+		// TODO PGI
+		return null;
+	}
+
 	private class CleCache {
 		
 		private final int annee;

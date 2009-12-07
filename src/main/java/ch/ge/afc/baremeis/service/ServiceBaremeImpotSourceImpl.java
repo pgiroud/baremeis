@@ -3,6 +3,7 @@
  */
 package ch.ge.afc.baremeis.service;
 
+import java.util.List;
 import java.util.Set;
 
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
@@ -42,4 +43,11 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 			return dao.obtenirBaremeMensuel(annee, codeCanton, new CodeTarifaire(code));
 		}
 	}
+	
+	@Override
+	public List<BaremeDisponible> baremeDisponible() {
+		// TODO PGI
+		return null;
+	}
+	
 }

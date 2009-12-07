@@ -16,13 +16,6 @@
 
 	<import resource="beans.xml"/>
 	
-	<bean name="fournisseurCalculateurISGeneve" 
-			class="ch.ge.afc.baremeis.ge.FournisseurGE">
-			<property name="fournisseurRegleCalculCotisationAssuranceSociale" ref="fournisseurRegleCalculAssuranceSociale"/>
-			<property name="fournisseurRegleImpotFederal" ref="fournisseurRegleImpotFederal"/>
-			<property name="fournisseurRegleImpotCantonal" ref="fournisseurRegleImpotCantonalGE"/>
-	</bean>
-	
 	<bean name="serviceBaremeDao" class="ch.ge.afc.baremeis.service.dao.fichierfederal.BaremeImpotSourceFichierPlatDao">
 	</bean>
 	

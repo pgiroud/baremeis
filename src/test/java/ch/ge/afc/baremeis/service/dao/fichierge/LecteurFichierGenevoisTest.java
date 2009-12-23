@@ -15,7 +15,7 @@ public class LecteurFichierGenevoisTest {
 	public void testSimpleLecture() {
 		LecteurFichierTexteStructureGenevoise lecteur = new LecteurFichierTexteStructureGenevoise();
 		lecteur.setCharsetName("ISO-8859-1");
-		lecteur.setFichier(new ClassPathResource("2009/bar_is2009_ascii.txt"));
+		lecteur.setFichier(new ClassPathResource("2009/ge/bar_is2009_ascii.txt"));
 		PasAction callback = new PasAction();
 		try {
 			lecteur.lire(callback);

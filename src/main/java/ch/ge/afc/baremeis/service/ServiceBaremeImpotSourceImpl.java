@@ -3,13 +3,15 @@
  */
 package ch.ge.afc.baremeis.service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import ch.ge.afc.bareme.Bareme;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE;
-import ch.ge.afc.calcul.bareme.Bareme;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -45,9 +47,14 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 	}
 	
 	@Override
-	public List<BaremeDisponible> baremeDisponible() {
-		// TODO PGI
-		return null;
+	public Set<BaremeDisponible> baremeDisponible() {
+		// TODO PGI en dur pour l'instant
+		Set<BaremeDisponible> baremes = new HashSet<BaremeDisponible>();
+		baremes.addAll(daoge.baremeDisponible());
+		baremes.addAll(dao.baremeDisponible());
+//		baremes.add(new BaremeDisponibleImpl(2009,"fr"));
+//		baremes.add(new BaremeDisponibleImpl(2010,"ge"));
+		return baremes;
 	}
 	
 }

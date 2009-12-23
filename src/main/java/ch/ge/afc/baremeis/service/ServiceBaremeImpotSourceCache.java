@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import ch.ge.afc.calcul.bareme.Bareme;
+import ch.ge.afc.bareme.Bareme;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -18,7 +18,9 @@ import ch.ge.afc.calcul.bareme.Bareme;
 public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 
 	private ConcurrentMap<CleCache,Set<ICodeTarifaire>> codeTarifaireParCantonAnnee = new ConcurrentHashMap<CleCache,Set<ICodeTarifaire>>(); 
-
+	private Set<BaremeDisponible> listeBaremeDisponible;
+	private Object synchroBaremeDispo = new Object();
+	
 	// Injection de dépendance
 	private ServiceBaremeImpotSource cible;
 	
@@ -88,9 +90,13 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 	}
 
 	@Override
-	public List<BaremeDisponible> baremeDisponible() {
-		// TODO PGI
-		return null;
+	public Set<BaremeDisponible> baremeDisponible() {
+		synchronized (synchroBaremeDispo) {
+			if (null == listeBaremeDisponible) {
+				listeBaremeDisponible = cible.baremeDisponible();
+			}
+		}
+		return listeBaremeDisponible; 
 	}
 
 	private class CleCache {

@@ -3,10 +3,12 @@
  */
 package ch.ge.afc.baremeis.service.dao;
 
+import java.util.List;
 import java.util.Set;
 
+import ch.ge.afc.bareme.Bareme;
+import ch.ge.afc.baremeis.service.BaremeDisponible;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
-import ch.ge.afc.calcul.bareme.Bareme;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -14,5 +16,6 @@ import ch.ge.afc.calcul.bareme.Bareme;
  */
 public interface BaremeImpotSourceDao {
 	Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton);
-	Bareme obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code); 
+	Bareme obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code);
+	Set<BaremeDisponible> baremeDisponible();
 }

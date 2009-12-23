@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +22,12 @@ import org.springframework.dao.EmptyResultDataAccessException;
 
 import static ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE.*;
 
+import ch.ge.afc.bareme.Bareme;
+import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
+import ch.ge.afc.baremeis.service.BaremeDisponible;
+import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
-import ch.ge.afc.calcul.bareme.Bareme;
-import ch.ge.afc.calcul.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.util.TypeArrondi;
 
 
@@ -42,6 +45,18 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 		return builder.toString();
 	}
 	
+	@Override
+	public Set<BaremeDisponible> baremeDisponible() {
+		Set<BaremeDisponible> baremes = new HashSet<BaremeDisponible>();
+		for (int annee = 2000; annee < 2100; annee++) {
+			Resource resource = new ClassPathResource(getNomFichier(annee));
+			if (resource.exists()) {
+				baremes.add(new BaremeDisponibleImpl(annee,"ge"));
+			}
+		}
+		return baremes;
+	}
+
 	private LecteurFichierTexteStructureGenevoise creerLecteur(int annee) {
 		// On recherche d'abord le fichier
 		String nomResource = getNomFichier(annee);
@@ -93,7 +108,7 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 	public Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton) {
 		if ("ge".equals(codeCanton.toLowerCase())) {
 			CodeTarifaireGE[] valeurs = CodeTarifaireGE.values();
-			Set<ICodeTarifaire> set = new HashSet<ICodeTarifaire>(valeurs.length);
+			Set<ICodeTarifaire> set = new TreeSet<ICodeTarifaire>();
 			for (CodeTarifaireGE code : valeurs) {
 				set.add(code);
 			}

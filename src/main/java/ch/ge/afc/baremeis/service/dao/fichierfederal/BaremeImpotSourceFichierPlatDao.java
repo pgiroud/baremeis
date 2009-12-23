@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -17,13 +18,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.EmptyResultDataAccessException;
 
+import ch.ge.afc.bareme.Bareme;
+import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
+import ch.ge.afc.baremeis.service.BaremeDisponible;
+import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
-import ch.ge.afc.calcul.bareme.Bareme;
-import ch.ge.afc.calcul.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.util.TypeArrondi;
 
 /**
@@ -41,13 +45,19 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
 		return builder.toString();
 	}
 	
-	private LecteurFichierTexteStructureFederale creerLecteur(int annee, int anneeBareme, String codeCanton) {
+	private LecteurFichierTexteStructureFederale creerLecteur(int annee, String codeCanton) {
 		// On recherche d'abord le fichier
 		String codeCantonMinuscule = codeCanton.toLowerCase();
-		String nomResource = getNomFichier(annee,anneeBareme,codeCantonMinuscule);
-		Resource fichier = new ClassPathResource(nomResource);
-		if (!fichier.exists()) {
-			String message = "Pas de fichier " + nomResource + " pour l'année " + annee + " et le canton '" +  codeCanton + "'";
+		Resource fichierFederal = null;
+		for (int anneeBareme = annee; anneeBareme > 2000; anneeBareme--) {
+			String nomResource = getNomFichier(annee,anneeBareme,codeCantonMinuscule);
+			Resource fichier = new ClassPathResource(nomResource);
+			if (fichier.exists()) {
+				fichierFederal = fichier;
+			}
+		}
+		if (null == fichierFederal) {
+			String message = "Pas de fichier fédéral pour l'année " + annee + " et le canton '" +  codeCanton + "'";
 			EmptyResultDataAccessException exception = new EmptyResultDataAccessException(message,1);
 			logger.info(message, exception);
 			throw exception;
@@ -55,19 +65,8 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
 		
 		LecteurFichierTexteStructureFederale lecteur = new LecteurFichierTexteStructureFederale();
 		lecteur.setCharsetName("ISO-8859-1");
-		lecteur.setFichier(fichier);
+		lecteur.setFichier(fichierFederal);
 		return lecteur;
-	}
-	
-	private LecteurFichierTexteStructureFederale creerLecteur(int annee, String codeCanton) {
-		LecteurFichierTexteStructureFederale lecteur = null;
-		try {
-			lecteur = this.creerLecteur(annee, annee, codeCanton);
- 		} catch (EmptyResultDataAccessException ex) {
- 			// Dans le cas où le fichier n'existe pas pour l'année, on teste avec l'année précédente
- 			lecteur = this.creerLecteur(annee, annee -1, codeCanton);
- 		}
- 		return lecteur;
 	}
 	
 	@Override
@@ -156,6 +155,25 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
 		}
 		bareme.ajouterDerniereTranche(tauxPrecedent);
 		return bareme;
+	}
+
+	@Override
+	public Set<BaremeDisponible> baremeDisponible() {
+		Set<BaremeDisponible> baremes = new HashSet<BaremeDisponible>();
+		for (int annee = 2001; annee < 2100; annee++) {
+			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+			try {
+				Resource[] resources = resolver.getResources("classpath*:" + annee + "/tar*.txt");
+				for (Resource resource : resources) {
+					String codeCanton = resource.getFilename().substring(5, 7);
+					baremes.add(new BaremeDisponibleImpl(annee,codeCanton));
+				}
+			} catch (IOException ioe) {
+				// TODO PGI propager une RuntimeException
+				logger.error("Problème lors de la recherche de barèmes fédéraux pour " + annee, ioe);
+			}
+		}
+		return baremes;
 	}
 
 

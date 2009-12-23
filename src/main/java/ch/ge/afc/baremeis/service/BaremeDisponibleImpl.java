@@ -3,6 +3,8 @@
  */
 package ch.ge.afc.baremeis.service;
 
+import ch.ge.afc.util.HashCodeBuilder;
+
 
 
 /**
@@ -13,6 +15,11 @@ public class BaremeDisponibleImpl implements BaremeDisponible {
 	
 	private String codeCanton;
 	private int annee;
+	
+	public BaremeDisponibleImpl(int annee, String codeCanton) {
+		this.annee = annee;
+		this.codeCanton = codeCanton.toLowerCase();
+	}
 	
 	public String getCodeCanton() {
 		return codeCanton;
@@ -25,6 +32,18 @@ public class BaremeDisponibleImpl implements BaremeDisponible {
 	}
 	public void setAnnee(int annee) {
 		this.annee = annee;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof BaremeDisponibleImpl)) return false;
+		BaremeDisponibleImpl bardispo = (BaremeDisponibleImpl)obj;
+		return this.annee == bardispo.annee && this.codeCanton.equals(bardispo.codeCanton);
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder().add(annee).add(codeCanton).hash();
 	}
 	
 	

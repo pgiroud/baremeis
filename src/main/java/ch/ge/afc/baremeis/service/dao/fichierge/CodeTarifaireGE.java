@@ -10,7 +10,7 @@ import ch.ge.afc.baremeis.service.ICodeTarifaire;
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  *
  */
-public enum CodeTarifaireGE implements ICodeTarifaire {
+public enum CodeTarifaireGE implements ICodeTarifaire, Comparable<CodeTarifaireGE> {
 	
 	A0("A0",GroupeTarifaire.A),
 	B0("B0",GroupeTarifaire.SALAIRE_UNIQUE),

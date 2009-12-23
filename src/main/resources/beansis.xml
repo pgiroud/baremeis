@@ -14,7 +14,6 @@
 
 	<context:annotation-config/>
 
-	<import resource="beans.xml"/>
 	
 	<bean name="serviceBaremeDao" class="ch.ge.afc.baremeis.service.dao.fichierfederal.BaremeImpotSourceFichierPlatDao">
 	</bean>

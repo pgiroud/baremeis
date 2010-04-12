@@ -5,6 +5,7 @@ package ch.ge.afc.baremeis.service.dao.fichierge;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -15,19 +16,19 @@ import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import static ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE.*;
 
-import ch.ge.afc.bareme.Bareme;
 import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.baremeis.service.BaremeDisponible;
 import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
+import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
 import ch.ge.afc.util.TypeArrondi;
 
 
@@ -38,31 +39,39 @@ import ch.ge.afc.util.TypeArrondi;
 public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private static final List<CodeTarifaireGE> ORDRE_CODE_AVANT_2010 = Arrays.asList(A0,B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13,B14,B15,I0,I1,I2,I3,I4,I5,I6,I7,I8);
+	private static final List<String> ORDRE_CODE = Arrays.asList("A0","B0","B1","B2","B3","B4","B5");
 	
-	private String getNomFichier(int annee) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(annee).append("/ge/bar_is").append(annee).append("_ascii.txt");
-		return builder.toString();
-	}
 	
 	@Override
 	public Set<BaremeDisponible> baremeDisponible() {
 		Set<BaremeDisponible> baremes = new HashSet<BaremeDisponible>();
+		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 		for (int annee = 2000; annee < 2100; annee++) {
-			Resource resource = new ClassPathResource(getNomFichier(annee));
-			if (resource.exists()) {
-				baremes.add(new BaremeDisponibleImpl(annee,"ge"));
+			try {
+				Resource[] resources = resolver.getResources("classpath*:" + annee + "/ge/*.txt");
+				if (resources.length > 0) baremes.add(new BaremeDisponibleImpl(annee,"ge"));
+			} catch (IOException ioe) {
+				logger.error("Problème lors de la recherche de barèmes cantonaux GE pour " + annee, ioe);
+				throw new DataAccessResourceFailureException("Problème lors de la recherche de fichier genevois pour l'année " + annee);
 			}
 		}
 		return baremes;
 	}
 
 	private LecteurFichierTexteStructureGenevoise creerLecteur(int annee) {
-		// On recherche d'abord le fichier
-		String nomResource = getNomFichier(annee);
-		Resource fichier = new ClassPathResource(nomResource);
+		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+		Resource fichier = null;
+		try {
+			Resource[] resources = resolver.getResources("classpath*:" + annee + "/ge/*.txt");
+			if (resources.length > 0) fichier = resources[0];
+			else throw new DataAccessResourceFailureException("Il n'existe pas de fichier genevois pour l'année " + annee);
+		} catch (IOException ioe) {
+			logger.error("Problème lors de la recherche de barèmes cantonaux GE pour " + annee, ioe);
+			throw new DataAccessResourceFailureException("Problème lors de la recherche de fichier genevois pour l'année " + annee);
+		}
 		if (!fichier.exists()) {
-			String message = "Pas de fichier " + nomResource + " pour l'année " + annee + ".";
+			String message = "Pas de fichier genevois pour l'année " + annee + ".";
 			EmptyResultDataAccessException exception = new EmptyResultDataAccessException(message,1);
 			logger.warn(message, exception);
 			throw exception;
@@ -76,41 +85,33 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 	
 	
 	private int getOrdre(CodeTarifaireGE code) {
-		if (A0.equals(code)) return 0;
-		else if (B0.equals(code)) return 1;
-		else if (B1.equals(code)) return 2;
-		else if (B2.equals(code)) return 3;
-		else if (B3.equals(code)) return 4;
-		else if (B4.equals(code)) return 5;
-		else if (B5.equals(code)) return 6;
-		else if (B6.equals(code)) return 7;
-		else if (B7.equals(code)) return 8;
-		else if (B8.equals(code)) return 9;
-		else if (B9.equals(code)) return 10;
-		else if (B10.equals(code)) return 11;
-		else if (B11.equals(code)) return 12;
-		else if (B12.equals(code)) return 13;
-		else if (B13.equals(code)) return 14;
-		else if (B14.equals(code)) return 15;
-		else if (B15.equals(code)) return 16;
-		else if (I0.equals(code)) return 17;
-		else if (I1.equals(code)) return 18;
-		else if (I2.equals(code)) return 19;
-		else if (I3.equals(code)) return 20;
-		else if (I4.equals(code)) return 21;
-		else if (I5.equals(code)) return 22;
-		else if (I6.equals(code)) return 23;
-		else if (I7.equals(code)) return 24;
-		else if (I8.equals(code)) return 25;
-		else throw new IllegalArgumentException("Le code tarifaire '" + code + "' est inconnu !!");
+		int index = ORDRE_CODE_AVANT_2010.indexOf(code);
+		if (index < 0) throw new IllegalArgumentException("Le code tarifaire '" + code + "' est inconnu !!");
+		return index;
 	}
+	
+	private int getOrdre(String code) {
+		String debutCode = code.substring(0,2);
+		int index = ORDRE_CODE.indexOf(debutCode);
+		if (index < 0) throw new IllegalArgumentException("Le code tarifaire '" + code + "' est inconnu !!");
+		return index;
+	}
+	
+	
+	
 	
 	public Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton) {
 		if ("ge".equals(codeCanton.toLowerCase())) {
-			CodeTarifaireGE[] valeurs = CodeTarifaireGE.values();
 			Set<ICodeTarifaire> set = new TreeSet<ICodeTarifaire>();
-			for (CodeTarifaireGE code : valeurs) {
-				set.add(code);
+			if (annee < 2010) {
+				CodeTarifaireGE[] valeurs = CodeTarifaireGE.values();
+				for (CodeTarifaireGE code : valeurs) {
+					set.add(code);
+				}
+			} else {
+				for (final String code : ORDRE_CODE) {
+					set.add(new CodeTarifaire(code));
+				}
 			}
 			return set;
 		} else {
@@ -118,7 +119,7 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 		}
 	}
 
-	public List<EnregistrementBaremeGE> rechercherTranches(int annee, final ICodeTarifaire code) {
+	private List<EnregistrementBaremeGE> rechercherTranches(final int annee, final ICodeTarifaire code) {
 		LecteurFichierTexteStructureGenevoise lecteur = this.creerLecteur(annee);
 		final List<EnregistrementBaremeGE> liste = new LinkedList<EnregistrementBaremeGE>();
 		EnregistrementGECallback callback = new EnregistrementGECallback() {
@@ -132,7 +133,9 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 				enreg.setMntMinHoraire(ligne.getMntMinHoraire());
 				enreg.setMntMaxHoraire(ligne.getMntMaxHoraire());
 				BigDecimal[] taux = ligne.getTaux();
-				int index = getOrdre((CodeTarifaireGE)code);
+				int index;
+				if (annee < 2010) index = getOrdre((CodeTarifaireGE)code);
+				else index = getOrdre(code.getCode());
 				enreg.setTaux(taux[index]);
 				liste.add(enreg);
 			}
@@ -154,9 +157,9 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 	}
 
 	@Override
-	public Bareme obtenirBaremeMensuel(int annee, String codeCanton,
+	public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton,
 			ICodeTarifaire code) {
-		if (!(code instanceof CodeTarifaireGE)) throw new IllegalArgumentException("Le code tarifaire doit être un code genevois !!");
+		if (annee < 2010 && !(code instanceof CodeTarifaireGE)) throw new IllegalArgumentException("Le code tarifaire doit être un code genevois !!");
 		List<EnregistrementBaremeGE> enreg = rechercherTranches(annee, code);
 		// Construction du barème
 		BaremeTauxEffectifConstantParTranche bareme = new BaremeTauxEffectifConstantParTranche();

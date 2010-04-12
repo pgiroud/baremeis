@@ -22,7 +22,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.EmptyResultDataAccessException;
 
-import ch.ge.afc.bareme.Bareme;
 import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.baremeis.service.BaremeDisponible;
 import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
@@ -38,10 +37,10 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	private String getNomFichier(int annee, int anneeBareme, String codeCanton) {
+	private String getNomFichier(int annee, int anneeBareme, String codeCanton, String extension) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(annee).append("/tar").append(String.valueOf(anneeBareme).substring(2))
-		.append(codeCanton).append(".txt");
+		.append(codeCanton).append(".").append(extension);
 		return builder.toString();
 	}
 	
@@ -50,10 +49,14 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
 		String codeCantonMinuscule = codeCanton.toLowerCase();
 		Resource fichierFederal = null;
 		for (int anneeBareme = annee; anneeBareme > 2000; anneeBareme--) {
-			String nomResource = getNomFichier(annee,anneeBareme,codeCantonMinuscule);
+			String nomResource = getNomFichier(annee,anneeBareme,codeCantonMinuscule,"txt");
 			Resource fichier = new ClassPathResource(nomResource);
 			if (fichier.exists()) {
 				fichierFederal = fichier;
+			} else {
+				nomResource = getNomFichier(annee,anneeBareme,codeCantonMinuscule,"zip");
+				fichier = new ClassPathResource(nomResource);
+				if (fichier.exists()) fichierFederal = fichier;
 			}
 		}
 		if (null == fichierFederal) {
@@ -139,7 +142,7 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
 	}
 
 	@Override
-	public Bareme obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code){
+	public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code){
 		List<EnregistrementBareme> enreg = rechercherTranches(annee, codeCanton, code);
 		// Construction du barème
 		BaremeTauxEffectifConstantParTranche bareme = new BaremeTauxEffectifConstantParTranche();
@@ -163,7 +166,7 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
 		for (int annee = 2001; annee < 2100; annee++) {
 			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 			try {
-				Resource[] resources = resolver.getResources("classpath*:" + annee + "/tar*.txt");
+				Resource[] resources = resolver.getResources("classpath*:" + annee + "/tar*");
 				for (Resource resource : resources) {
 					String codeCanton = resource.getFilename().substring(5, 7);
 					baremes.add(new BaremeDisponibleImpl(annee,codeCanton));

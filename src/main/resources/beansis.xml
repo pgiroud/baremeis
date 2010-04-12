@@ -21,9 +21,13 @@
 	<bean name="serviceBaremeDaoGe" class="ch.ge.afc.baremeis.service.dao.fichierge.BaremeImpotSourceFichierGEPlatDao">
 	</bean>
 	
+	<bean name="serviceBaremeDaoFr" class="ch.ge.afc.baremeis.service.dao.fichierfr.BaremeImpotSourceFichierFRPlatDao">
+	</bean>
+	
 	<bean name="serviceBaremeSansCache" class="ch.ge.afc.baremeis.service.ServiceBaremeImpotSourceImpl">
 		<property name="dao" ref="serviceBaremeDao"/>
 		<property name="daoge" ref="serviceBaremeDaoGe"/>
+		<property name="daofr" ref="serviceBaremeDaoFr"/>
 	</bean>
 	
 	<bean name="serviceBareme" class="ch.ge.afc.baremeis.service.ServiceBaremeImpotSourceCache">

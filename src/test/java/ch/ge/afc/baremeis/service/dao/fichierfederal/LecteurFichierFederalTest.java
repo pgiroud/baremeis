@@ -4,12 +4,9 @@ package ch.ge.afc.baremeis.service.dao.fichierfederal;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,32 +25,10 @@ public class LecteurFichierFederalTest {
 	public void testSimpleLecture() {
 		LecteurFichierTexteStructureFederale lecteur = new LecteurFichierTexteStructureFederale();
 		lecteur.setCharsetName("ISO-8859-1");
-		lecteur.setFichier(new ClassPathResource("2009/tar09fr.txt"));
+		lecteur.setFichier(new ClassPathResource("2009/tar09fr.7z"));
 		PasAction callback = new PasAction();
 		try {
 			lecteur.lire(callback);
-		} catch (IOException ioe) {
-			fail("Exception de lecture : " + ioe.getLocalizedMessage());
-		}
-	}
-	
-	@Test
-	public void testLectureGe() {
-		LecteurFichierTexteStructureFederale lecteur = new LecteurFichierTexteStructureFederale();
-		lecteur.setCharsetName("ISO-8859-1");
-		lecteur.setFichier(new ClassPathResource("2010/tar10ge.txt"));
-		final Set<String> codes = new HashSet<String>();
-		EnregistrementCallback callback = new PasAction() {
-			@Override
-			public void lectureEnregistrement(EnregistrementBareme enreg) {
-				codes.add(enreg.getCodeTarifaire().getCode());
-			}
-		};
-		try {
-			lecteur.lire(callback);
-			List<String> codesLst = new ArrayList<String>(codes);
-			Collections.sort(codesLst);
-			System.out.println(codesLst);
 		} catch (IOException ioe) {
 			fail("Exception de lecture : " + ioe.getLocalizedMessage());
 		}
@@ -92,6 +67,19 @@ public class LecteurFichierFederalTest {
 		}
 		} catch (IOException ioe) {
 			fail("Exception de lecture : " + ioe.getLocalizedMessage());
+		}
+	}
+	
+	@Test
+	public void lireFichierZip() {
+		LecteurFichierTexteStructureFederale lecteur = new LecteurFichierTexteStructureFederale();
+		lecteur.setCharsetName("ISO-8859-1");
+		lecteur.setFichier(new ClassPathResource("2010/tar10vd.zip"));
+		EnregistrementCallback callback = new PasAction();
+		try {
+			lecteur.lire(callback);
+		} catch (IOException e) {
+			fail("Exception de lecture : " + e.getLocalizedMessage());
 		}
 	}
 	

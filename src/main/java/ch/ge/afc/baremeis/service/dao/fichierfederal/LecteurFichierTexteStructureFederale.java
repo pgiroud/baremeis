@@ -5,18 +5,24 @@ package ch.ge.afc.baremeis.service.dao.fichierfederal;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.TimeZone;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.TypeMismatchDataAccessException;
+
+import p7zip.LZMA.LzmaInputStream;
 
 import ch.ge.afc.baremeis.service.Sexe;
 
@@ -142,9 +148,29 @@ public class LecteurFichierTexteStructureFederale {
 		}
 	}
 	
+	private InputStream getInputStream() throws IOException {
+		InputStream stream = null;
+		if (fichier.getFilename().endsWith("zip")) {
+			ZipFile fichierArchive = new ZipFile(fichier.getFile());
+			String nomFichier = fichier.getFilename().replace("zip", "txt");
+			for (Enumeration<? extends ZipEntry> entrees = fichierArchive.entries(); entrees.hasMoreElements();) {
+				ZipEntry entree = entrees.nextElement();
+				if (nomFichier.equals(entree.getName())) {
+					stream = fichierArchive.getInputStream(entree);
+				}
+			}
+			if (null == stream) throw new TypeMismatchDataAccessException("Il n'existe pas de fichier " + nomFichier + " dans l'archive " + fichier.getFilename());
+		} else if (fichier.getFilename().endsWith("7z")) {
+			stream = new LzmaInputStream(fichier.getInputStream());
+		} else {
+			stream = fichier.getInputStream();
+		}
+		return stream;
+	}
+	
 	
 	public void lire(EnregistrementCallback callback) throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(fichier.getInputStream(),charsetName));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(),charsetName));
 		int numLigne = 1;
 		String ligne = reader.readLine(); 
 		while (null != ligne) {

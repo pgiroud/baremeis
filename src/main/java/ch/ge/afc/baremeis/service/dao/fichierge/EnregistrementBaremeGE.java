@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  *
  */
-public class EnregistrementBaremeGE {
+class EnregistrementBaremeGE {
 	private BigDecimal mntMinAnnuel;
 	private BigDecimal mntMaxAnnuel;
 	private BigDecimal mntMinMensu;

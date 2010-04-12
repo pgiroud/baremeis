@@ -20,7 +20,7 @@ import org.springframework.dao.TypeMismatchDataAccessException;
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  *
  */
-public class LecteurFichierTexteStructureGenevoise {
+class LecteurFichierTexteStructureGenevoise {
 	
 	/**************************************************/
     /****************** Attributs *********************/

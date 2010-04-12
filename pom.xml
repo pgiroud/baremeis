@@ -4,12 +4,13 @@
   <groupId>ch.ge.afc</groupId>
   <artifactId>baremeis</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.3</version>
   <name>baremeis</name>
   <url>http://maven.apache.org</url>
   <properties>
      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
      <compileSource>1.6</compileSource>
+     <spring.version>3.0.1.RELEASE</spring.version>
   </properties>
   <build>
     <plugins>
@@ -31,7 +32,7 @@
             <artifactId>maven-javadoc-plugin</artifactId>
             <configuration>
               <show>package</show>	
-              <javadocExecutable>D:\progs\Java\jdk1.6.0_11\bin\javadoc.exe</javadocExecutable>
+              <javadocExecutable>D:\progs\Java\jdk1.6.0_14\bin\javadoc.exe</javadocExecutable>
               <charset>${project.build.sourceEncoding}</charset>
               <docfilessubdirs>true</docfilessubdirs>
         	  <excludedocfilessubdir>CVS</excludedocfilessubdir>
@@ -44,7 +45,7 @@
 			  </links>
             </configuration>
          </plugin>
-		 <plugin>
+		 <!-- plugin>
            <groupId>org.codehaus.mojo</groupId>
            <artifactId>cobertura-maven-plugin</artifactId>
            <configuration>
@@ -53,7 +54,7 @@
                <format>xml</format>
              </formats>
            </configuration>
-         </plugin>
+         </plugin-->
          <plugin>
            <groupId>org.apache.maven.plugins</groupId>
            <artifactId>maven-pmd-plugin</artifactId>
@@ -91,6 +92,12 @@
 		<version>1.5.8</version>
 	</dependency>
 	<dependency>
+    	<groupId>org.slf4j</groupId>
+      	<artifactId>jcl-over-slf4j</artifactId>
+      	<version>1.5.8</version>
+      	<scope>runtime</scope>
+    </dependency>
+	<dependency>
 		<groupId>org.slf4j</groupId>
 		<artifactId>slf4j-log4j12</artifactId>
 		<version>1.5.8</version>
@@ -105,28 +112,45 @@
 	<dependency>
 		<groupId>ch.ge.afc</groupId>
 		<artifactId>bareme</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 	</dependency>
 	<dependency>
+		<groupId>p7zip</groupId>
+		<artifactId>LZMA</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+ 	</dependency>	
+ 	<dependency>
     	<groupId>org.springframework</groupId>
     	<artifactId>spring-context</artifactId>
-    	<version>3.0.0.RELEASE</version>
+    	<version>${spring.version}</version>
+		<exclusions>
+         	<exclusion>
+            	<groupId>commons-logging</groupId>
+            	<artifactId>commons-logging</artifactId>
+         	</exclusion>
+      	</exclusions>
 	</dependency>
 	<dependency>
     	<groupId>org.springframework</groupId>
     	<artifactId>spring-test</artifactId>
-    	<version>3.0.0.RELEASE</version>
+    	<version>${spring.version}</version>
     	<scope>test</scope>
 	</dependency>
 	<dependency>
 		<groupId>org.springframework</groupId>
 		<artifactId>spring-core</artifactId>
-		<version>3.0.0.RELEASE</version>
+		<version>${spring.version}</version>
+		<exclusions>
+         	<exclusion>
+            	<groupId>commons-logging</groupId>
+            	<artifactId>commons-logging</artifactId>
+         	</exclusion>
+      	</exclusions>
 	</dependency>
 	<dependency>
 		<groupId>org.springframework</groupId>
 		<artifactId>spring-tx</artifactId>
-		<version>3.0.0.RELEASE</version>
+		<version>${spring.version}</version>
 	</dependency>
   </dependencies>
 </project>

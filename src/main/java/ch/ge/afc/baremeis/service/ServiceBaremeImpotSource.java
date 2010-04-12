@@ -5,7 +5,7 @@ package ch.ge.afc.baremeis.service;
 
 import java.util.Set;
 
-import ch.ge.afc.bareme.Bareme;
+import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -15,7 +15,9 @@ public interface ServiceBaremeImpotSource {
 
 	Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton);
 	
-	Bareme obtenirBaremeMensuel(int annee, String codeCanton, String code);
+	BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, String code);
 	
+	BaremeTauxEffectifConstantParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code);
+
 	Set<BaremeDisponible> baremeDisponible();
 }

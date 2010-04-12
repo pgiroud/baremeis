@@ -3,13 +3,14 @@
  */
 package ch.ge.afc.baremeis.service;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import ch.ge.afc.bareme.Bareme;
+import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
+import ch.ge.afc.util.TypeArrondi;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -56,7 +57,7 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 	 * @see ch.ge.afc.baremeis.service.ServiceBaremeImpotSource#obtenirBaremeMensuel(int, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public Bareme obtenirBaremeMensuel(int annee, String codeCanton, String code) {
+	public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, String code) {
 		boolean complet = true;
 		String codeComplet = code;
 		if (1 == code.length()) {
@@ -75,6 +76,11 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 		if (1 == codesFiltres.size()) codeChoisi = codesFiltres.iterator().next().getCode();
 		else codeChoisi = choisirCode(codeComplet,codesFiltres,complet);
 		return cible.obtenirBaremeMensuel(annee, codeCanton,codeChoisi);
+	}
+
+	@Override
+	public BaremeTauxEffectifConstantParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
+		return obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.FRANC);
 	}
 
 	/* (non-Javadoc)

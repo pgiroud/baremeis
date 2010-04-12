@@ -3,10 +3,9 @@
  */
 package ch.ge.afc.baremeis.service.dao;
 
-import java.util.List;
 import java.util.Set;
 
-import ch.ge.afc.bareme.Bareme;
+import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.baremeis.service.BaremeDisponible;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 
@@ -16,6 +15,6 @@ import ch.ge.afc.baremeis.service.ICodeTarifaire;
  */
 public interface BaremeImpotSourceDao {
 	Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton);
-	Bareme obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code);
+	BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code);
 	Set<BaremeDisponible> baremeDisponible();
 }

@@ -1,0 +1,66 @@
+
+  Service cantonal des contributions
+  Kantonale Steuerverwaltung
+
+
+
+
+IMPOT A LA SOURCE / QUELLENSTEUER : BAREME / TARIF 2005
+
+
+FICHIER/DATEI (ASCII): BAREME05.TXT (BAREMES/TARIFE: -A-, -B- et -C-)
+FICHIER/DATEI (Excel): BAREME05.XLS (BAREMES/TARIFE: -A-, -B- et -C-)
+
+------------------------------------------    +-----------------------------------+
+ *    1    2   3    4   5   6   7   8   9     | * TS 1 = BAREME -A- (seul)        |
+------------------------------------------    | * TS 2 = BAREME -B- (marié)       |
+TS 10000100550    012601260126012601260126    | * TS 3 = BAREME -C- (marié 2)     |
+TS 10055100600    011501150115011501150115    +-----------------------------------+
+TS 10060100650    010601060106010601060106    
+TS 10065100700    009800980098009800980098    +-----------------------------------+
+TS 10070100750    009100910091009100910091    | 1 = sal. mensuel "de" [PIC 99999] |
+TS 10075100800    008500850085008500850085    | 2 = sal. mensuel "à"  [PIC 99999] |
+                                              | 3 = taux épouse       [PIC 99V99] |
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-    | 4 = taux 0 enfant     [PIC 99V99] |
+                                              | 5 = taux 1 enfant     [PIC 99V99] |
+TS 14150141550    325531763126307130152959    | 6 = taux 2 enfants    [PIC 99V99] |
+TS 14155141600    325531773127307130162960    | 7 = taux 3 enfants    [PIC 99V99] |
+TS 14160141650    325631783127307130162960    | 8 = taux 4 enfants    [PIC 99V99] |
+TS 14165141700    325631783128307230172961    | 9 = taux 5 enfants    [PIC 99V99] |
+TS 20000100550    012601260126012601260126    +-----------------------------------+
+TS 20055100600    011501150115011501150115    
+TS 20060100650    010601060106010601060106    *************************************
+TS 20065100700    009800980098009800980098    
+                                              +-----------------------------------+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-    | * TS 1 = TARIF -A- (alleinst.)    |
+                                              | * TS 2 = TARIF -B- (verheiratet)  |
+TS 24150141550    320531553105304929932938    | * TS 3 = TARIF -C- (verheiratet 2)|
+TS 24155141600    320631563105305029942939    +-----------------------------------+
+TS 24160141650    320631563106305029952939    
+TS 24165141700    320631563106305129952940    +-----------------------------------+
+TS 300001005500087007500750075007500750075    | 1 = Monatslohn "von"  [PIC 99999] |
+TS 300551006000085006900690069006900690069    | 2 = Monatslohn "bis"  [PIC 99999] |
+TS 300601006500083006300630063006300630063    | 3 = Satz Ehefrau      [PIC 99V99] |
+TS 300651007000082005900590059005900590059    | 4 = Satz 0 Kinder     [PIC 99V99] |
+                                              | 5 = Satz 1 Kind       [PIC 99V99] |
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-    | 6 = Satz 2 Kinder     [PIC 99V99] |
+                                              | 7 = Satz 3 Kinder     [PIC 99V99] |
+TS 341401414503343329132403190313430783022    | 8 = Satz 4 Kinder     [PIC 99V99] |
+TS 341451415003343329132413190313430783023    | 9 = Satz 5 Kinder     [PIC 99V99] |
+TS 341501415503343329132413190313530793023    +-----------------------------------+
+TS 341551416003343329232413191313530803024
+TS 341601416503343329232413191313630803025
+TS 341651417003343329232423192313630813026
+
+
+
+APPLICATION: barème -A- --> personnes seules (sans/avec enfants à charge)
+             barème -B- --> personnes mariées (1 activité)
+             barème -C- --> personnes mariées (2 activités [contribuable + conjoint])
+
+ANWENDUNG:   Tarif  -A- --> Alleinstehende Personen (ohne/mit Kinderunterhaltspflicht)
+             Tarif  -B- --> Verheiratete Personen (Alleinverdiener)
+             Tarif  -C- --> Verheiratete Personen (Doppelverdiener [Steuerpflichtiger + Ehepartner])
+
+
+                                 Secteur informatique / Abteilung Informatik          

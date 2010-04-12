@@ -7,6 +7,7 @@ import javax.annotation.Resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,10 +50,12 @@ public class ServiceBaremeImpotSourceTest {
 	
 	@Test
 	public void testGeneve() {
-		Bareme bareme = service.obtenirBaremeMensuel(2010, "ge", "B2+");
-		test(bareme,9000,"4.80 %");
-		bareme = service.obtenirBaremeMensuel(2010, "ge", "B2");
-		test(bareme,9000,"4.80 %");
+		try {
+			service.obtenirBaremeMensuel(2010, "ge", "B2");
+			fail("Les barèmes 2010 ne sont pas dans le classpath !!");
+		} catch (Exception ex) {
+			
+		}
 	}
 	
 	@Test

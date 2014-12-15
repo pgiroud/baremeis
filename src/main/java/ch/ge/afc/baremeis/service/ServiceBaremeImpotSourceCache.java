@@ -9,8 +9,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
-import ch.ge.afc.util.TypeArrondi;
+import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
+import org.impotch.util.TypeArrondi;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>

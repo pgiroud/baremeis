@@ -7,11 +7,11 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
-import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
+import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE;
-import ch.ge.afc.util.TypeArrondi;
+import org.impotch.util.TypeArrondi;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -36,7 +36,7 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 	}
 
 	public Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton) {
-		if ("GE".equals(codeCanton.toUpperCase())) {
+		if ("GE".equals(codeCanton.toUpperCase()) && annee < 2014) {
 			return daoge.rechercherBareme(annee, codeCanton);
 		} else {
 			if ("FR".equals(codeCanton.toUpperCase())) {
@@ -54,7 +54,7 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 
 	
 	public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, String code){
-		if ("GE".equals(codeCanton.toUpperCase())) {
+		if ("GE".equals(codeCanton.toUpperCase()) && annee < 2014) {
 			if (annee < 2010) return daoge.obtenirBaremeMensuel(annee, codeCanton, CodeTarifaireGE.getParCode(code));
 			else return daoge.obtenirBaremeMensuel(annee, codeCanton, new CodeTarifaire(code));
 		} else {

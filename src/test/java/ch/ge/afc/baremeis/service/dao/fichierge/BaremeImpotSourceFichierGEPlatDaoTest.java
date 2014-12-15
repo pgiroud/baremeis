@@ -10,7 +10,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.ge.afc.bareme.Bareme;
+import org.impotch.bareme.Bareme;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 

@@ -12,10 +12,15 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import static org.junit.Assert.*;
 
 public class LecteurFichierFederalTest {
+
+    final Logger logger = LoggerFactory.getLogger(LecteurFichierFederalTest.class);
+
 
 	@Before
 	public void setUp() throws Exception {
@@ -25,7 +30,7 @@ public class LecteurFichierFederalTest {
 	public void testSimpleLecture() {
 		LecteurFichierTexteStructureFederale lecteur = new LecteurFichierTexteStructureFederale();
 		lecteur.setCharsetName("ISO-8859-1");
-		lecteur.setFichier(new ClassPathResource("2009/tar09fr.7z"));
+		lecteur.setFichier(new ClassPathResource("2009/tar09fr.txt"));
 		PasAction callback = new PasAction();
 		try {
 			lecteur.lire(callback);
@@ -62,6 +67,7 @@ public class LecteurFichierFederalTest {
 			}
 			
 		})) {
+            logger.info("Parsing de " + filename);
 			lecteur.setFichier(new ClassPathResource("2009/" + filename));
 				lecteur.lire(callback);
 		}
@@ -82,8 +88,25 @@ public class LecteurFichierFederalTest {
 			fail("Exception de lecture : " + e.getLocalizedMessage());
 		}
 	}
-	
-	private class PasAction implements EnregistrementCallback {
+
+
+    @Test
+    public void lireFichierXz() {
+        LecteurFichierTexteStructureFederale lecteur = new LecteurFichierTexteStructureFederale();
+        lecteur.setCharsetName("ISO-8859-1");
+        lecteur.setFichier(new ClassPathResource("2010/tar10vd.xz"));
+        EnregistrementCallback callback = new PasAction();
+        try {
+            lecteur.lire(callback);
+        } catch (IOException e) {
+            fail("Exception de lecture : " + e.getLocalizedMessage());
+        }
+    }
+
+
+
+
+    private class PasAction implements EnregistrementCallback {
 		@Override
 		public void lectureEnregistrement(EnregistrementBareme enreg) {
 		}

@@ -3,7 +3,7 @@
  */
 package ch.ge.afc.baremeis.service;
 
-import ch.ge.afc.util.HashCodeBuilder;
+import org.impotch.util.HashCodeBuilder;
 
 
 

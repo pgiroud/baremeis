@@ -5,9 +5,10 @@ package ch.ge.afc.baremeis.service.dao;
 
 import java.util.Set;
 
-import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
+
 import ch.ge.afc.baremeis.service.BaremeDisponible;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
+import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>

@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.EmptyResultDataAccessException;
 
-import ch.ge.afc.bareme.Bareme;
+import org.impotch.bareme.Bareme;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 
@@ -48,7 +48,18 @@ public class BaremeImpotSourceFichierPlatDaoTest {
 		assertEquals("Montant impôt mensuel pour 10'000 francs de revenu, barème B2",new BigDecimal("1057.00"),impot);
 		
 	}
-	
+
+
+    @Test
+    public void fribourg2013() {
+        BaremeImpotSourceDao dao = new BaremeImpotSourceFichierPlatDao();
+        CodeTarifaire code = new CodeTarifaire("B2+");
+        Bareme bareme = dao.obtenirBaremeMensuel(2013, "fr", code);
+        BigDecimal impot = bareme.calcul(new BigDecimal(10000));
+        assertEquals("Montant impôt mensuel pour 10'000 francs de revenu, barème B2",new BigDecimal("855.00"),impot);
+
+    }
+
 //	@Test
 //	public void trancheNeuchateloise() {
 //		

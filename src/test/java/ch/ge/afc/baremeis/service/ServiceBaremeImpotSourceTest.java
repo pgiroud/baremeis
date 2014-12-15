@@ -4,19 +4,17 @@ package ch.ge.afc.baremeis.service;
 import java.math.BigDecimal;
 
 import javax.annotation.Resource;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import ch.ge.afc.bareme.Bareme;
-import ch.ge.afc.util.BigDecimalUtil;
-import ch.ge.afc.util.TypeArrondi;
+import org.impotch.bareme.Bareme;
+import org.impotch.util.BigDecimalUtil;
+import org.impotch.util.TypeArrondi;
+
+import static org.junit.Assert.*;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -65,5 +63,11 @@ public class ServiceBaremeImpotSourceTest {
 		assertTrue(baremeB.equals(baremeB0plus));
 		Bareme baremeB0 = service.obtenirBaremeMensuel(2009, "ag", "B0");
 		assertFalse(baremeB0.equals(baremeB0plus));
+	}
+
+	@Test
+	public void testArgovie2015() {
+		Bareme baremeH2 = service.obtenirBaremeMensuel(2015,"ag","H2");
+		assertNotNull(baremeH2);
 	}
 }

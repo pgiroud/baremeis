@@ -20,12 +20,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.EmptyResultDataAccessException;
 
-import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
+import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.baremeis.service.BaremeDisponible;
 import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
-import ch.ge.afc.util.TypeArrondi;
+import org.impotch.util.TypeArrondi;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -49,7 +49,7 @@ public class BaremeImpotSourceFichierFRPlatDao implements BaremeImpotSourceDao {
 			List<EnregistrementBaremeFR> enreg = rechercherTranches(annee, code);
 			// Construction du barème
 			BaremeTauxEffectifConstantParTranche bareme = new BaremeTauxEffectifConstantParTranche();
-			bareme.setTypeArrondi(TypeArrondi.CINQ_CTS);
+			bareme.setTypeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
 			BigDecimal montantPrecedent = BigDecimal.ZERO;
 			BigDecimal tauxPrecedent = BigDecimal.ZERO;
 			for (EnregistrementBaremeFR enr : enreg) {

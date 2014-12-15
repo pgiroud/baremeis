@@ -5,7 +5,7 @@ package ch.ge.afc.baremeis.service;
 
 import java.util.Set;
 
-import ch.ge.afc.bareme.BaremeTauxEffectifConstantParTranche;
+import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>

@@ -3,10 +3,7 @@
  */
 package ch.ge.afc.baremeis.service.dao.fichierfederal;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -17,12 +14,12 @@ import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.TypeMismatchDataAccessException;
 
-import p7zip.LZMA.LzmaInputStream;
 
 import ch.ge.afc.baremeis.service.Sexe;
 
@@ -118,8 +115,17 @@ public class LecteurFichierTexteStructureFederale {
 	private BigDecimal tauxEnPourcent(String taux) {
 		return new BigDecimal(taux.substring(0, 1) + "." + taux.substring(1,5));
 	}
-	
-	private void traiterLigneGeneral(EnregistrementCallback callback, String ligne, int numeroLigne) throws ParseException {
+
+
+	/**
+	 * barèmes progressifs de l’impôt à la source
+	 * pour le revenu d’une activité lucrative salariée
+	 * @param callback
+	 * @param ligne
+	 * @param numeroLigne
+	 * @throws ParseException
+	 */
+	private void traiterLigneSalarie(EnregistrementCallback callback, String ligne, int numeroLigne) throws ParseException {
 		EnregistrementBareme enreg = new EnregistrementBareme();
 		enreg.setGenre(GenreTransaction.getParCode(sousChaine(ligne,3,4)));
 		enreg.setCodeCanton(sousChaine(ligne,5,6));
@@ -134,13 +140,39 @@ public class LecteurFichierTexteStructureFederale {
 		enreg.setTaux(tauxEnPourcent(sousChaine(ligne,55,59)));
 		callback.lectureEnregistrement(enreg);
 	}
-	
-	
+
+	/**
+	 * barèmes pour administrateurs d’après
+	 * l’art. 93 LIFD et pour participations de collaborateur d’après l’art. 97a LIFD
+	 * @param callback
+	 * @param ligne
+	 * @param numeroLigne
+	 * @throws ParseException
+	 */
+	private void traiterLigneAdministrateur(EnregistrementCallback callback, String ligne, int numeroLigne) throws ParseException {
+	}
+
+	/**
+	 *
+	 * @param callback
+	 * @param ligne
+	 * @param numeroLigne
+	 * @throws ParseException
+	 */
+	private void traiterLigneCommissionPerception(EnregistrementCallback callback, String ligne, int numeroLigne) throws ParseException {
+	}
+
 	private void traiterLigne(EnregistrementCallback callback, String ligne, int numeroLigne) throws ParseException {
 		// Lecture du genre d'enregistrement
 		String genreTransaction = ligne.substring(0, 2);
 		if ("06".equals(genreTransaction)) {
-			traiterLigneGeneral(callback,ligne,numeroLigne);
+			traiterLigneSalarie(callback, ligne, numeroLigne);
+		} else if ("11".equals(genreTransaction)) {
+			logger.debug("Le fichier " + fichier.getFilename() + " comprend une ligne administrateur ! Ce genre de ligne n'est pas prévu.");
+		 	traiterLigneAdministrateur(callback, ligne, numeroLigne);
+		} else if ("12".equals(genreTransaction)) {
+			logger.debug("Le fichier " + fichier.getFilename() + " comprend une ligne commission de perception ! Ce genre de ligne n'est pas prévu.");
+			traiterLigneCommissionPerception(callback, ligne, numeroLigne);
 		} else if ("00".equals(genreTransaction)) {
 			traiterLigneEnregInitial(callback,ligne,numeroLigne);
 		} else if ("99".equals(genreTransaction)) {
@@ -160,9 +192,10 @@ public class LecteurFichierTexteStructureFederale {
 				}
 			}
 			if (null == stream) throw new TypeMismatchDataAccessException("Il n'existe pas de fichier " + nomFichier + " dans l'archive " + fichier.getFilename());
-		} else if (fichier.getFilename().endsWith("7z")) {
-			stream = new LzmaInputStream(fichier.getInputStream());
-		} else {
+		} else if (fichier.getFilename().endsWith("xz") || fichier.getFilename().endsWith("XZ")) {
+            BufferedInputStream in = new BufferedInputStream(fichier.getInputStream());
+            stream = new XZCompressorInputStream(in);
+        } else {
 			stream = fichier.getInputStream();
 		}
 		return stream;

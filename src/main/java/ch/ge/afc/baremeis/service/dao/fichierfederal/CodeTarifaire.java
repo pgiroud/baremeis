@@ -27,7 +27,9 @@ public class CodeTarifaire implements Comparable<CodeTarifaire>, ICodeTarifaire 
 		String codeLong = codeB.toString();
 		groupe = GroupeTarifaire.getParCode(codeLong.charAt(0));
 		nbreEnfantSuivantIndicCanton = Integer.valueOf(codeLong.substring(1,2));
-		if (' ' != codeLong.charAt(2)) avecPartImpotEcclesiastique = Boolean.valueOf('+' == codeLong.charAt(2));
+		char codeImpotEcclesiastique = codeLong.charAt(2);
+		if (' ' != codeImpotEcclesiastique) avecPartImpotEcclesiastique = Boolean.valueOf('+' == codeImpotEcclesiastique
+			|| 'Y' == codeImpotEcclesiastique);
 		else avecPartImpotEcclesiastique = null;
 		typeFrontalier = TypeFrontalier.getParCode(codeLong.substring(3));
 	}

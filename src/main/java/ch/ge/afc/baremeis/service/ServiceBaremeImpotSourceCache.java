@@ -80,7 +80,7 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 
 	@Override
 	public BaremeTauxEffectifConstantParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
-		return obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.FRANC);
+		return (BaremeTauxEffectifConstantParTranche)obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.FRANC);
 	}
 
 	/* (non-Javadoc)

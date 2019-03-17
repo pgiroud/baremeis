@@ -73,9 +73,6 @@ public class EnregistrementBareme {
 	public void setMontantImpot(BigDecimal montantImpot) {
 		this.montantImpot = montantImpot;
 	}
-	public BigDecimal getTaux() {
-		return taux;
-	}
 	public void setTaux(BigDecimal taux) {
 		this.taux = taux;
 	}
@@ -85,7 +82,13 @@ public class EnregistrementBareme {
 	public void setCodeTarifaire(CodeTarifaire codeTarifaire) {
 		this.codeTarifaire = codeTarifaire;
 	}
-	
-	
-	
+
+	public BigDecimal getMontantImposableMax() {
+	    return revenuImposable.add(echelonTarifaire).subtract(BigDecimal.ONE);
+    }
+
+    public BigDecimal getTaux() {
+        return taux;
+    }
+
 }

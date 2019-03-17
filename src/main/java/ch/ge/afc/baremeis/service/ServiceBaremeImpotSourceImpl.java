@@ -6,12 +6,12 @@ package ch.ge.afc.baremeis.service;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+import org.impotch.util.TypeArrondi;
 
 import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE;
-import org.impotch.util.TypeArrondi;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -49,7 +49,7 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 
 	@Override
 	public BaremeTauxEffectifConstantParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
-		return obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.FRANC);
+		return (BaremeTauxEffectifConstantParTranche)obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.FRANC);
 	}
 
 	

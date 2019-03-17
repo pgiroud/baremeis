@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.impotch.bareme.ConstructeurBareme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -48,19 +49,25 @@ public class BaremeImpotSourceFichierFRPlatDao implements BaremeImpotSourceDao {
 		try {
 			List<EnregistrementBaremeFR> enreg = rechercherTranches(annee, code);
 			// Construction du barème
-			BaremeTauxEffectifConstantParTranche bareme = new BaremeTauxEffectifConstantParTranche();
-			bareme.setTypeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
-			BigDecimal montantPrecedent = BigDecimal.ZERO;
-			BigDecimal tauxPrecedent = BigDecimal.ZERO;
-			for (EnregistrementBaremeFR enr : enreg) {
-				if (0 != tauxPrecedent.compareTo(enr.getTaux())) {
-					bareme.ajouterTranche(montantPrecedent, tauxPrecedent);
-				}
-				montantPrecedent = enr.getMntMaxMensu();
-				tauxPrecedent = enr.getTaux();
-			}
-			bareme.ajouterDerniereTranche(tauxPrecedent);
-			return bareme;
+			ConstructeurBareme cons = new ConstructeurBareme();
+			cons.typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
+			enreg.stream().forEach(enr -> cons.tranche(enr.getMntMaxMensu(),enr.getTaux()));
+			cons.derniereTranche(enreg.get(enreg.size()-1).getTaux());
+			return cons.construireBaremeTauxEffectifConstantParTranche();
+
+//			BaremeTauxEffectifConstantParTranche bareme = new BaremeTauxEffectifConstantParTranche();
+//			bareme.setTypeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
+//			BigDecimal montantPrecedent = BigDecimal.ZERO;
+//			BigDecimal tauxPrecedent = BigDecimal.ZERO;
+//			for (EnregistrementBaremeFR enr : enreg) {
+//				if (0 != tauxPrecedent.compareTo(enr.getTaux())) {
+//					bareme.ajouterTranche(montantPrecedent, tauxPrecedent);
+//				}
+//				montantPrecedent = enr.getMntMaxMensu();
+//				tauxPrecedent = enr.getTaux();
+//			}
+//			bareme.ajouterDerniereTranche(tauxPrecedent);
+//			return bareme;
 		} catch (EmptyResultDataAccessException ed) {
 			return null;
 		}

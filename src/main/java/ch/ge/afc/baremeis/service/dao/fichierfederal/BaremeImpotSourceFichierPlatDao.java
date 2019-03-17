@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.impotch.bareme.ConstructeurBareme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -161,19 +162,11 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
     public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code) {
         List<EnregistrementBareme> enreg = rechercherTranches(annee, codeCanton, code);
         // Construction du barème
-        BaremeTauxEffectifConstantParTranche bareme = new BaremeTauxEffectifConstantParTranche();
-        bareme.setTypeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
-        BigDecimal revenu = BigDecimal.ZERO;
-        BigDecimal tauxPrecedent = enreg.get(0).getTaux();
-        for (EnregistrementBareme enr : enreg) {
-            if (0 != tauxPrecedent.compareTo(enr.getTaux())) {
-                bareme.ajouterTranche(revenu, tauxPrecedent);
-            }
-            revenu = revenu.add(enr.getEchelonTarifaire());
-            tauxPrecedent = enr.getTaux();
-        }
-        bareme.ajouterDerniereTranche(tauxPrecedent);
-        return bareme;
+        ConstructeurBareme cons = new ConstructeurBareme();
+        cons.typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
+        enreg.stream().forEach(enr -> cons.tranche(enr.getMontantImposableMax(),enr.getTaux()));
+        cons.derniereTranche(enreg.get(enreg.size()-1).getTaux());
+        return cons.construireBaremeTauxEffectifConstantParTranche();
     }
 
     @Override

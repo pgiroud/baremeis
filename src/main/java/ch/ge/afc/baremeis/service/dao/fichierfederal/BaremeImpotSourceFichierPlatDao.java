@@ -164,8 +164,9 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
         // Construction du barème
         ConstructeurBareme cons = new ConstructeurBareme();
         cons.typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
-        enreg.stream().forEach(enr -> cons.tranche(enr.getMontantImposableMax(),enr.getTaux()));
-        cons.derniereTranche(enreg.get(enreg.size()-1).getTaux());
+        enreg.stream().forEach(enr -> cons.tranche(enr.getRevenuImposable().subtract(BigDecimal.ONE),enr.getMontantImposableMax(),enr.getTaux()));
+        EnregistrementBareme dernier = enreg.get(enreg.size()-1);
+        cons.derniereTranche(dernier.getMontantImposableMax(),dernier.getTaux());
         return cons.construireBaremeTauxEffectifConstantParTranche();
     }
 

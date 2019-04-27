@@ -1,11 +1,11 @@
 package ch.ge.afc.baremeis.service.dao.fichierge;
 
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Fail.fail;
 
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 

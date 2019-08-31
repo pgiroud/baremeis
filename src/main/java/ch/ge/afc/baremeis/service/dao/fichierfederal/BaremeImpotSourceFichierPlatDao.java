@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.impotch.bareme.ConstructeurBareme;
+import org.impotch.util.BigDecimalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -164,9 +165,24 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
         // Construction du barème
         ConstructeurBareme cons = new ConstructeurBareme();
         cons.typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
-        enreg.stream().forEach(enr -> cons.tranche(enr.getRevenuImposable().subtract(BigDecimal.ONE),enr.getMontantImposableMax(),enr.getTaux()));
+        if (1 < enreg.size()) {
+            // 1ère tranche
+            EnregistrementBareme premierEnregistrement = enreg.get(0);
+            cons.premiereTranche(premierEnregistrement.getMontantImposableMax(),premierEnregistrement.getTaux());
+            BigDecimal longueurDerniereTranche = BigDecimal.valueOf(9_999_999);
+            enreg.stream()
+                    .filter(enr -> {
+                        return BigDecimalUtil.isStrictementPositif(enr.getRevenuImposable())
+                                && BigDecimalUtil.isStrictementPositif(enr.getRevenuImposable().subtract(BigDecimal.ONE))
+                                // on ne veut pas la première tranche
+                                &&
+                                BigDecimalUtil.isStrictementPositif(longueurDerniereTranche.subtract(enr.getEchelonTarifaire())); // on ne veut pas la dernière tranche
+                    })
+                    .forEach(enr -> cons.tranche(enr.getRevenuImposable(),enr.getMontantImposableMax(),enr.getTaux()));
+
+        }
         EnregistrementBareme dernier = enreg.get(enreg.size()-1);
-        cons.derniereTranche(dernier.getMontantImposableMax(),dernier.getTaux());
+        cons.derniereTranche(dernier.getRevenuImposable(),dernier.getTaux());
         return cons.construireBaremeTauxEffectifConstantParTranche();
     }
 

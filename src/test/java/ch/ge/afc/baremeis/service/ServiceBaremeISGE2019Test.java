@@ -31,7 +31,7 @@ public class ServiceBaremeISGE2019Test {
         try {
             bareme = service.obtenirBaremeAnnuel(2019, "ge", "A0");
         } catch (Exception ex) {
-            fail("Les barèmes 2010 ne sont pas dans le classpath !!");
+            fail("Les barèmes 2019 ne sont pas dans le classpath !!");
         }
         TrancheBareme tranche = bareme.obtenirTranches().get(0);
         Intervalle intervalle = tranche.getIntervalle();
@@ -46,7 +46,7 @@ public class ServiceBaremeISGE2019Test {
         try {
             bareme = service.obtenirBaremeAnnuel(2019, "ge", "A0");
         } catch (Exception ex) {
-            fail("Les barèmes 2010 ne sont pas dans le classpath !!");
+            fail("Les barèmes 2019 ne sont pas dans le classpath !!");
         }
 
         TrancheBareme tranche = bareme.obtenirTranches().get(bareme.obtenirTranches().size()-1);

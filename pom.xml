@@ -7,7 +7,7 @@
 
  <groupId>ch.ge.afc</groupId>
   <artifactId>baremeis</artifactId>
-  <version>1.2.2</version>
+  <version>1.2.3</version>
   <packaging>jar</packaging>
 
   <dependencies>

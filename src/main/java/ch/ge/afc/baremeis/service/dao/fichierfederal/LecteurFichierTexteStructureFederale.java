@@ -15,6 +15,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
+import org.impotch.util.TypeArrondi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -34,6 +35,7 @@ public class LecteurFichierTexteStructureFederale {
     /**************************************************/
     /****************** Attributs *********************/
     /**************************************************/
+    private static BigDecimal UN_CENTIME = new BigDecimal("0.01");
 
     final Logger logger = LoggerFactory.getLogger(LecteurFichierTexteStructureFederale.class);
     private Resource fichier;
@@ -142,7 +144,11 @@ public class LecteurFichierTexteStructureFederale {
         String codeTarifaire = sousChaine(ligne, 7, 16);
         traiterCodeTarifaire(codeTarifaire, enreg);
         enreg.setDateInitialeValidite(date(ligne, 17, 24));
-        enreg.setRevenuImposable(montantSansCentime(ligne, 25, 33));
+        BigDecimal revenuImposable = montantAvecCentime(ligne, 25, 33);
+        // Attention, certain commence les tranches avec 5 cts de plus et d'autres avec 1 franc de plus
+        // Il aurait été beaucoup plus malin de mettre les montants en fin de tranche !!
+        revenuImposable = TypeArrondi.FRANC_INF.arrondirMontant(revenuImposable.subtract(UN_CENTIME));
+        enreg.setRevenuImposable(revenuImposable);
         enreg.setEchelonTarifaire(montantAvecCentime(ligne, 34, 42));
         enreg.setSexe(Sexe.getParCode(ligne.charAt(44)));
         enreg.setNbreEnfant(entier(ligne, 44, 45));

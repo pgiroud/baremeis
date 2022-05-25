@@ -111,7 +111,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <compileSource>17</compileSource>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
-    <spring.version>5.3.14</spring.version>
+    <spring.version>5.3.20</spring.version>
     <slf4j.version>1.7.32</slf4j.version>
     <assertj.version>3.21.0</assertj.version>
   </properties>

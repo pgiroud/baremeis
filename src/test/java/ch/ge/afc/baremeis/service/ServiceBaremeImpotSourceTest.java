@@ -21,7 +21,7 @@ public class ServiceBaremeImpotSourceTest {
     private ServiceBaremeImpotSource service;
 
     private BigDecimal obtenirImpot(int revenu, String taux) {
-        return TypeArrondi.CINQ_CTS.arrondirMontant(new BigDecimal(revenu).multiply(BigDecimalUtil.parseTaux(taux)));
+        return TypeArrondi.CINQ_CENTIEMES_LES_PLUS_PROCHES.arrondirMontant(new BigDecimal(revenu).multiply(BigDecimalUtil.parseTaux(taux)));
     }
 
     private void test(Bareme bareme, int revenu, String taux) {
@@ -31,7 +31,7 @@ public class ServiceBaremeImpotSourceTest {
     }
 
     @Test
-    public void testFribourg() {
+    public void testFribourgAvecStructureFederale() {
         // Barème B1+
         Bareme bareme = service.obtenirBaremeMensuel(2009, "fr", "B1+");
         test(bareme, 15000, "17.28 %");
@@ -39,6 +39,12 @@ public class ServiceBaremeImpotSourceTest {
         bareme = service.obtenirBaremeMensuel(2009, "fr", "B1");
         test(bareme, 15000, "17.28 %");
         test(bareme, 15010, "17.33 %");
+    }
+
+    @Test
+    public void testFribourgAvecStructureCantonaleSpecifique() {
+        Bareme bareme = service.obtenirBaremeMensuel(2010, "fr", "B2");
+        test(bareme, 15000, "15.38 %");
     }
 
     @Test

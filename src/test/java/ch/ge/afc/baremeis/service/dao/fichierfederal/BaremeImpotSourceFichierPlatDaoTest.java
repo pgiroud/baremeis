@@ -24,13 +24,13 @@ public class BaremeImpotSourceFichierPlatDaoTest {
     @Test
     public void baremeCantonBizarre() {
         BaremeImpotSourceDao dao = new BaremeImpotSourceFichierPlatDao();
-        assertThatExceptionOfType(EmptyResultDataAccessException.class).isThrownBy(() -> dao.rechercherBareme(2009, "lulu"));
+        assertThatExceptionOfType(EmptyResultDataAccessException.class).isThrownBy(() -> dao.rechercherCodesTarifaires(2009, "lulu"));
     }
 
     @Test
     public void baremeVaudois() {
         BaremeImpotSourceDao dao = new BaremeImpotSourceFichierPlatDao();
-        Set<ICodeTarifaire> codes = dao.rechercherBareme(2009, "VD");
+        Set<ICodeTarifaire> codes = dao.rechercherCodesTarifaires(2009, "VD");
         assertThat(10 < codes.size()).isTrue();
         // Barème revenu accessoire à 10 %
         Bareme bareme = dao.obtenirBaremeMensuel(2009, "VD", new CodeTarifaire("D0+"));

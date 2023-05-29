@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.impotch.bareme.BaremeParTranche;
 import org.impotch.bareme.ConstructeurBareme;
 import org.impotch.util.BigDecimalUtil;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 
+import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectif;
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  */
@@ -87,7 +89,7 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
     }
 
     @Override
-    public Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton) {
+    public Set<ICodeTarifaire> rechercherCodesTarifaires(int annee, String codeCanton) {
         LecteurFichierTexteStructureFederale lecteur = this.creerLecteur(annee, codeCanton);
         final Set<ICodeTarifaire> codes = new TreeSet<ICodeTarifaire>();
         EnregistrementCallback callback = new EnregistrementCallback() {
@@ -160,11 +162,11 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
     }
 
     @Override
-    public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code) {
+    public BaremeParTranche obtenirBaremeMensuel(int annee, String codeCanton, ICodeTarifaire code) {
         List<EnregistrementBareme> enreg = rechercherTranches(annee, codeCanton, code);
         // Construction du barème
-        ConstructeurBareme cons = new ConstructeurBareme();
-        cons.typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
+        ConstructeurBareme cons = unBaremeATauxEffectif()
+            .typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CENTIEMES_LES_PLUS_PROCHES);
         if (1 < enreg.size()) {
             // 1ère tranche
             EnregistrementBareme premierEnregistrement = enreg.get(0);
@@ -183,7 +185,7 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
         }
         EnregistrementBareme dernier = enreg.get(enreg.size()-1);
         cons.derniereTranche(dernier.getRevenuImposable(),dernier.getTaux());
-        return cons.construireBaremeTauxEffectifConstantParTranche();
+        return cons.construire();
     }
 
     @Override

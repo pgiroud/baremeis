@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.impotch.bareme.BaremeParTranche;
 import org.impotch.bareme.ConstructeurBareme;
 import org.impotch.util.BigDecimalUtil;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
 import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 import org.impotch.util.TypeArrondi;
 
-
+import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectif;
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  */
@@ -100,7 +101,7 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
     }
 
 
-    public Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton) {
+    public Set<ICodeTarifaire> rechercherCodesTarifaires(int annee, String codeCanton) {
         if ("ge".equals(codeCanton.toLowerCase())) {
             Set<ICodeTarifaire> set = new TreeSet<ICodeTarifaire>();
             if (annee < 2010) {
@@ -158,14 +159,13 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
     }
 
     @Override
-    public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton,
-                                                                     ICodeTarifaire code) {
+    public BaremeParTranche obtenirBaremeMensuel(int annee, String codeCanton,
+                                                 ICodeTarifaire code) {
         if (annee < 2010 && !(code instanceof CodeTarifaireGE))
             throw new IllegalArgumentException("Le code tarifaire doit être un code genevois !!");
         List<EnregistrementBaremeGE> enreg = rechercherTranches(annee, code);
         // Construction du barème
-        ConstructeurBareme cons = new ConstructeurBareme();
-        cons.typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
+        ConstructeurBareme cons = unBaremeATauxEffectif().typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CENTIEMES_LES_PLUS_PROCHES);
         if (1 < enreg.size()) {
             // 1ère tranche
             EnregistrementBaremeGE premierEnregistrement = enreg.get(0);
@@ -184,7 +184,7 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
         }
         EnregistrementBaremeGE dernier = enreg.get(enreg.size()-1);
         cons.derniereTranche(dernier.getMntMinMensu(),dernier.getTaux());
-        return cons.construireBaremeTauxEffectifConstantParTranche();
+        return cons.construire();
     }
 
 

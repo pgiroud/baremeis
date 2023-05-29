@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.impotch.util.TypeArrondi;
 
-import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
+import org.impotch.bareme.BaremeParTranche;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE;
@@ -35,31 +35,31 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 		this.daofr = daofr;
 	}
 
-	public Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton) {
+	public Set<ICodeTarifaire> rechercherCodeTarifaire(int annee, String codeCanton) {
 		if ("GE".equals(codeCanton.toUpperCase()) && annee < 2014) {
-			return daoge.rechercherBareme(annee, codeCanton);
+			return daoge.rechercherCodesTarifaires(annee, codeCanton);
 		} else {
 			if ("FR".equals(codeCanton.toUpperCase())) {
-				Set<ICodeTarifaire> codes = daofr.rechercherBareme(annee, codeCanton);
+				Set<ICodeTarifaire> codes = daofr.rechercherCodesTarifaires(annee, codeCanton);
 				if (null != codes) return codes;
 			}
-			return dao.rechercherBareme(annee, codeCanton);
+			return dao.rechercherCodesTarifaires(annee, codeCanton);
 		}
 	}
 
 	@Override
-	public BaremeTauxEffectifConstantParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
-		return (BaremeTauxEffectifConstantParTranche)obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.FRANC);
+	public BaremeParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
+		return obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.UNITE_LA_PLUS_PROCHE);
 	}
 
 	
-	public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, String code){
+	public BaremeParTranche obtenirBaremeMensuel(int annee, String codeCanton, String code){
 		if ("GE".equals(codeCanton.toUpperCase()) && annee < 2014) {
 			if (annee < 2010) return daoge.obtenirBaremeMensuel(annee, codeCanton, CodeTarifaireGE.getParCode(code));
 			else return daoge.obtenirBaremeMensuel(annee, codeCanton, new CodeTarifaire(code));
 		} else {
 			if ("FR".equals(codeCanton.toUpperCase())) {
-				BaremeTauxEffectifConstantParTranche bareme = daofr.obtenirBaremeMensuel(annee, codeCanton, new CodeTarifaire(code));
+				BaremeParTranche bareme = daofr.obtenirBaremeMensuel(annee, codeCanton, new CodeTarifaire(code));
 				if (null != bareme) return bareme;
 			}
 			return dao.obtenirBaremeMensuel(annee, codeCanton, new CodeTarifaire(code));

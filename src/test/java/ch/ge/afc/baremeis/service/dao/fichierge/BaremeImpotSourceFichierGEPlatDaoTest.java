@@ -22,7 +22,7 @@ public class BaremeImpotSourceFichierGEPlatDaoTest {
 	@Test
 	public void baremes() {
 		BaremeImpotSourceDao dao = new BaremeImpotSourceFichierGEPlatDao();
-		Set<ICodeTarifaire> codes = dao.rechercherBareme(2009,"GE");
+		Set<ICodeTarifaire> codes = dao.rechercherCodesTarifaires(2009,"GE");
 		assertThat(10 < codes.size()).isTrue();
 	}
 	

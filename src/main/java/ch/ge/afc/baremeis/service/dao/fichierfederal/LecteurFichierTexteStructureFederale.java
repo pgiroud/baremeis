@@ -147,7 +147,7 @@ public class LecteurFichierTexteStructureFederale {
         BigDecimal revenuImposable = montantAvecCentime(ligne, 25, 33);
         // Attention, certain commence les tranches avec 5 cts de plus et d'autres avec 1 franc de plus
         // Il aurait été beaucoup plus malin de mettre les montants en fin de tranche !!
-        revenuImposable = TypeArrondi.FRANC_INF.arrondirMontant(revenuImposable.subtract(UN_CENTIME));
+        revenuImposable = TypeArrondi.UNITE_INF.arrondirMontant(revenuImposable.subtract(UN_CENTIME));
         enreg.setRevenuImposable(revenuImposable);
         enreg.setEchelonTarifaire(montantAvecCentime(ligne, 34, 42));
         enreg.setSexe(Sexe.getParCode(ligne.charAt(44)));

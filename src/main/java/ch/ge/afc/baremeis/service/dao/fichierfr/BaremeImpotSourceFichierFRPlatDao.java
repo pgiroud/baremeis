@@ -5,29 +5,23 @@ package ch.ge.afc.baremeis.service.dao.fichierfr;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import org.impotch.bareme.BaremeParTranche;
 import org.impotch.bareme.ConstructeurBareme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.EmptyResultDataAccessException;
 
-import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 import ch.ge.afc.baremeis.service.BaremeDisponible;
 import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 import org.impotch.util.TypeArrondi;
 
+import static ch.ge.afc.baremeis.service.dao.fichierfr.LecteurFichierTexteStructureFribourgeoise.unLecteurDepuisClasspath;
+import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectif;
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  */
@@ -43,69 +37,56 @@ public class BaremeImpotSourceFichierFRPlatDao implements BaremeImpotSourceDao {
      * (int, java.lang.String, ch.ge.afc.baremeis.service.ICodeTarifaire)
      */
     @Override
-    public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee,
-                                                                     String codeCanton, ICodeTarifaire code) {
-        try {
+    public BaremeParTranche obtenirBaremeMensuel(int annee,
+                                                 String codeCanton, ICodeTarifaire code) {
             List<EnregistrementBaremeFR> enreg = rechercherTranches(annee, code);
+            if (null == enreg) return null;
             // Construction du barème
-            ConstructeurBareme cons = new ConstructeurBareme();
-            cons.typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CTS);
-            enreg.stream().forEach(enr -> cons.tranche(enr.getMntMinMensu(), enr.getMntMaxMensu(), enr.getTaux()));
+            ConstructeurBareme cons = unBaremeATauxEffectif().typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CENTIEMES_LES_PLUS_PROCHES);
+            enreg.stream().forEach(enr -> cons.tranche(enr.getMntMinMensu().subtract(BigDecimal.ONE), enr.getMntMaxMensu(), enr.getTaux()));
             EnregistrementBaremeFR dernier = enreg.get(enreg.size() - 1);
             cons.derniereTranche(dernier.getMntMinMensu(), dernier.getTaux());
-            return cons.construireBaremeTauxEffectifConstantParTranche();
-
-        } catch (EmptyResultDataAccessException ed) {
-            return null;
-        }
+            return cons.construire();
     }
 
     private int getOrdre(ICodeTarifaire code) {
         return Integer.parseInt(code.getCode().substring(1, 2)) + 1;
     }
 
-    private LecteurFichierTexteStructureFribourgeoise creerLecteur(int annee) {
+    private Optional<LecteurFichierTexteStructureFribourgeoise> creerLecteur(int annee) {
         // On recherche d'abord le fichier
         String nomResource = getNomFichier(annee);
-        Resource fichier = new ClassPathResource(nomResource);
-        if (!fichier.exists()) {
-            String message = "Pas de fichier " + nomResource + " pour l'année "
-                    + annee + ".";
-            EmptyResultDataAccessException exception = new EmptyResultDataAccessException(
-                    message, 1);
-            logger.warn(message, exception);
-            throw exception;
-        }
-
-        LecteurFichierTexteStructureFribourgeoise lecteur = new LecteurFichierTexteStructureFribourgeoise();
-        lecteur.setCharsetName("ISO-8859-1");
-        lecteur.setFichier(fichier);
-        return lecteur;
+        return unLecteurDepuisClasspath(nomResource,"ISO-8859-1");
     }
 
     private List<EnregistrementBaremeFR> rechercherTranches(int annee,
                                                             final ICodeTarifaire code) {
-        LecteurFichierTexteStructureFribourgeoise lecteur = this
+        Optional<LecteurFichierTexteStructureFribourgeoise> lecteurO = this
                 .creerLecteur(annee);
+        if (!lecteurO.isPresent()) {
+            return null;
+        }
         final List<EnregistrementBaremeFR> liste = new LinkedList<EnregistrementBaremeFR>();
         EnregistrementFRCallback callback = new EnregistrementFRCallback() {
             @Override
             public void traiterLigne(LigneEnregistrement ligne) {
-                EnregistrementBaremeFR enreg = new EnregistrementBaremeFR();
-                enreg.setMntMinMensu(ligne.getMntMinMensu());
-                enreg.setMntMaxMensu(ligne.getMntMaxMensu());
-                BigDecimal[] taux = ligne.getTaux();
-                int index = getOrdre(code);
-                enreg.setTaux(taux[index]);
-                liste.add(enreg);
+                if (code.getCode().charAt(0) == ligne.getGroupe().getCode()) {
+                    EnregistrementBaremeFR enreg = new EnregistrementBaremeFR();
+                    enreg.setMntMinMensu(ligne.getMntMinMensu());
+                    enreg.setMntMaxMensu(ligne.getMntMaxMensu());
+                    BigDecimal[] taux = ligne.getTaux();
+                    int index = getOrdre(code);
+                    enreg.setTaux(taux[index]);
+                    liste.add(enreg);
+                }
             }
         };
         try {
-            lecteur.lire(callback);
+            lecteurO.get().lire(callback);
         } catch (IOException ioe) {
             String message = "Exception de lecture I/O dans le fichier";
             logger.error(message);
-            throw new DataAccessResourceFailureException("message", ioe);
+            throw new RuntimeException("message", ioe);
         }
         Collections.sort(liste, new Comparator<EnregistrementBaremeFR>() {
             @Override
@@ -127,21 +108,12 @@ public class BaremeImpotSourceFichierFRPlatDao implements BaremeImpotSourceDao {
         return builder.toString();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao#rechercherBareme(int,
-     * java.lang.String)
+    /**
+     * Les codes tarifaires sont composés
+     * de A0, A1, ..., A5, B0, B1, ... B5, C0, C1, ..., C5
+     * @return ces 18 codes tarifaires
      */
-    @Override
-    public Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton) {
-        // TODO PGI À revoir pour lancer l'exception !
-        try {
-            this.creerLecteur(annee);
-        } catch (EmptyResultDataAccessException ed) {
-            return null;
-        }
+    private Set<ICodeTarifaire> getCodes() {
         Set<ICodeTarifaire> codes = new TreeSet<ICodeTarifaire>();
         for (int i = 0; i < 6; i++) {
             codes.add(new CodeTarifaireFR("A", i));
@@ -151,16 +123,24 @@ public class BaremeImpotSourceFichierFRPlatDao implements BaremeImpotSourceDao {
         return codes;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao#rechercherBareme(int,
+     * java.lang.String)
+     */
+    @Override
+    public Set<ICodeTarifaire> rechercherCodesTarifaires(int annee, String codeCanton) {
+        return this.creerLecteur(annee).isPresent() ? getCodes() : null;
+    }
+
     @Override
     public Set<BaremeDisponible> baremeDisponible() {
-        Set<BaremeDisponible> baremes = new HashSet<BaremeDisponible>();
-        for (int annee = 2000; annee < 2100; annee++) {
-            Resource resource = new ClassPathResource(getNomFichier(annee));
-            if (resource.exists()) {
-                baremes.add(new BaremeDisponibleImpl(annee, "fr"));
-            }
-        }
-        return baremes;
+        return IntStream.iterate(2000, n -> n < 2100, n -> n+1)
+                .filter(n -> creerLecteur(n).isPresent())
+                .mapToObj(n -> new BaremeDisponibleImpl(n, "fr"))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
 }

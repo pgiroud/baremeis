@@ -52,7 +52,7 @@ public class ExtractionTypeBareme {
 	public void extraire() {
 		mapCode.clear();
 		for (String codeCan : codeCanton) {
-			Set<ICodeTarifaire> codes = service.rechercherBareme(2009, codeCan);
+			Set<ICodeTarifaire> codes = service.rechercherCodeTarifaire(2009, codeCan);
 			for (ICodeTarifaire code : codes) {
 				String codeStr = code.getCode();
 				if (!mapCode.containsKey(codeStr)) {

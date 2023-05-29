@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
+import org.impotch.bareme.BaremeParTranche;
 import org.impotch.util.TypeArrondi;
 
 /**
@@ -57,14 +57,14 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 	 * @see ch.ge.afc.baremeis.service.ServiceBaremeImpotSource#obtenirBaremeMensuel(int, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public BaremeTauxEffectifConstantParTranche obtenirBaremeMensuel(int annee, String codeCanton, String code) {
+	public BaremeParTranche obtenirBaremeMensuel(int annee, String codeCanton, String code) {
 		boolean complet = true;
 		String codeComplet = code;
 		if (1 == code.length()) {
 			complet = false;
 			codeComplet =  code + "0";
 		}
-		Set<ICodeTarifaire> codes = rechercherBareme(annee,codeCanton);
+		Set<ICodeTarifaire> codes = rechercherCodeTarifaire(annee,codeCanton);
 		Set<ICodeTarifaire> codesFiltres = new HashSet<ICodeTarifaire>();
 		for (ICodeTarifaire codeTarif : codes) {
 			if (codeTarif.getCode().toUpperCase().startsWith(codeComplet.toUpperCase())) {
@@ -79,18 +79,18 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 	}
 
 	@Override
-	public BaremeTauxEffectifConstantParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
-		return (BaremeTauxEffectifConstantParTranche)obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.FRANC);
+	public BaremeParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
+		return obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.UNITE_LA_PLUS_PROCHE);
 	}
 
 	/* (non-Javadoc)
 	 * @see ch.ge.afc.baremeis.service.ServiceBaremeImpotSource#rechercherBareme(int, java.lang.String)
 	 */
 	@Override
-	public Set<ICodeTarifaire> rechercherBareme(int annee, String codeCanton) {
+	public Set<ICodeTarifaire> rechercherCodeTarifaire(int annee, String codeCanton) {
 		CleCache cle = new CleCache(annee, codeCanton);
 		if (!codeTarifaireParCantonAnnee.containsKey(cle)) {
-			codeTarifaireParCantonAnnee.putIfAbsent(cle, cible.rechercherBareme(annee, codeCanton));
+			codeTarifaireParCantonAnnee.putIfAbsent(cle, cible.rechercherCodeTarifaire(annee, codeCanton));
 		}
 		return codeTarifaireParCantonAnnee.get(cle);
 	}

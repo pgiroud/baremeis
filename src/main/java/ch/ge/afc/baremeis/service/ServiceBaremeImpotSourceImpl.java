@@ -6,6 +6,8 @@ package ch.ge.afc.baremeis.service;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.impotch.util.StringUtil;
 import org.impotch.util.TypeArrondi;
 
 import org.impotch.bareme.BaremeParTranche;
@@ -19,11 +21,11 @@ import ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE;
  */
 public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 	
-	private BaremeImpotSourceDao dao;
+	private final BaremeImpotSourceDao dao;
 	private BaremeImpotSourceDao daoge;
 	private BaremeImpotSourceDao daofr;
-	
-	public void setDao(BaremeImpotSourceDao dao) {
+
+	public ServiceBaremeImpotSourceImpl(BaremeImpotSourceDao dao) {
 		this.dao = dao;
 	}
 
@@ -36,15 +38,23 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 	}
 
 	public Set<ICodeTarifaire> rechercherCodeTarifaire(int annee, String codeCanton) {
-		if ("GE".equals(codeCanton.toUpperCase()) && annee < 2014) {
+		verifierCodeCanton(codeCanton);
+		if ("GE".equals(codeCanton.toUpperCase()) && annee < 2014 && null != daoge) {
 			return daoge.rechercherCodesTarifaires(annee, codeCanton);
 		} else {
-			if ("FR".equals(codeCanton.toUpperCase())) {
+			if ("FR".equals(codeCanton.toUpperCase()) && null != daofr) {
 				Set<ICodeTarifaire> codes = daofr.rechercherCodesTarifaires(annee, codeCanton);
 				if (null != codes) return codes;
 			}
 			return dao.rechercherCodesTarifaires(annee, codeCanton);
 		}
+	}
+
+	private void verifierCodeCanton(String codeCanton) {
+		if (!StringUtil.hasText(codeCanton)) throw new RuntimeException("Le code canton doît au moins contenir du texte !!");
+		codeCanton = codeCanton.trim();
+		if (2 != codeCanton.length()) throw new RuntimeException("Le code canton doît être composé de 2 caractères !!");
+		if (Canton.getParCode(codeCanton).isEmpty()) throw new RuntimeException("Le code canton '" + codeCanton + "'n'est pas un code de canton suisse !!");
 	}
 
 	@Override
@@ -54,11 +64,11 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 
 	
 	public BaremeParTranche obtenirBaremeMensuel(int annee, String codeCanton, String code){
-		if ("GE".equals(codeCanton.toUpperCase()) && annee < 2014) {
+		if ("GE".equals(codeCanton.toUpperCase()) && annee < 2014 && null != daoge) {
 			if (annee < 2010) return daoge.obtenirBaremeMensuel(annee, codeCanton, CodeTarifaireGE.getParCode(code));
 			else return daoge.obtenirBaremeMensuel(annee, codeCanton, new CodeTarifaire(code));
 		} else {
-			if ("FR".equals(codeCanton.toUpperCase())) {
+			if ("FR".equals(codeCanton.toUpperCase()) && null != daofr) {
 				BaremeParTranche bareme = daofr.obtenirBaremeMensuel(annee, codeCanton, new CodeTarifaire(code));
 				if (null != bareme) return bareme;
 			}

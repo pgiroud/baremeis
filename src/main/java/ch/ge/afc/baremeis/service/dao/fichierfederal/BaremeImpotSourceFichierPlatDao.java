@@ -5,27 +5,17 @@ package ch.ge.afc.baremeis.service.dao.fichierfederal;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import ch.ge.afc.baremeis.service.Canton;
 import org.impotch.bareme.BaremeParTranche;
 import org.impotch.bareme.ConstructeurBareme;
 import org.impotch.util.BigDecimalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.EmptyResultDataAccessException;
 
-import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 import org.impotch.util.TypeArrondi;
 
 import ch.ge.afc.baremeis.service.BaremeDisponible;
@@ -34,6 +24,7 @@ import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 
 import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectif;
+import static ch.ge.afc.baremeis.service.dao.fichierfederal.LecteurFichierTexteStructureFederale.unLecteurDepuisClasspath;
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  */
@@ -48,49 +39,52 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
         return builder.toString();
     }
 
-    private LecteurFichierTexteStructureFederale creerLecteur(int annee, String codeCanton) {
+    private Optional<LecteurFichierTexteStructureFederale> creerLecteurTxt(int annee, int anneeBareme, String codeCantonMinuscule) {
+        return unLecteurDepuisClasspath(getNomFichier(annee, anneeBareme, codeCantonMinuscule, "txt"),"ISO-8859-1");
+    }
+
+    private Optional<LecteurFichierTexteStructureFederale> creerLecteurXz(int annee, int anneeBareme, String codeCantonMinuscule) {
+        return unLecteurDepuisClasspath(getNomFichier(annee, anneeBareme, codeCantonMinuscule, "xz"),"ISO-8859-1");
+    }
+
+    private Optional<LecteurFichierTexteStructureFederale> creerLecteurZip(int annee, int anneeBareme, String codeCantonMinuscule) {
+        return unLecteurDepuisClasspath(getNomFichier(annee, anneeBareme, codeCantonMinuscule, "zip"),"ISO-8859-1");
+    }
+
+
+
+    private Optional<LecteurFichierTexteStructureFederale> creerLecteur(int annee, String codeCanton) {
         // On recherche d'abord le fichier
         String codeCantonMinuscule = codeCanton.toLowerCase();
-        Resource fichierFederal = null;
-        for (int anneeBareme = annee; anneeBareme > 2000; anneeBareme--) {
-            String nomResource = getNomFichier(annee, anneeBareme, codeCantonMinuscule, "txt");
-            Resource fichier = new ClassPathResource(nomResource);
-            if (fichier.exists()) {
-                fichierFederal = fichier;
-                break;
+         for (int anneeBareme = annee; anneeBareme > 2000; anneeBareme--) {
+            Optional<LecteurFichierTexteStructureFederale> lecteur =
+                    creerLecteurTxt(annee, anneeBareme, codeCantonMinuscule);
+            if (lecteur.isPresent()) {
+                return lecteur;
             } else {
-                nomResource = getNomFichier(annee, anneeBareme, codeCantonMinuscule, "xz");
-                fichier = new ClassPathResource(nomResource);
-                if (fichier.exists()) {
-                    fichierFederal = fichier;
-                    break;
+                lecteur = creerLecteurXz(annee, anneeBareme, codeCantonMinuscule);
+                if (lecteur.isPresent()) {
+                    return lecteur;
                 }
                 else {
-                    nomResource = getNomFichier(annee, anneeBareme, codeCantonMinuscule, "zip");
-                    fichier = new ClassPathResource(nomResource);
-                    if (fichier.exists()) {
-                        fichierFederal = fichier;
-                        break;
+                    lecteur = creerLecteurZip(annee, anneeBareme, codeCantonMinuscule);
+                    if (lecteur.isPresent()) {
+                        return lecteur;
+                    } else {
+                        String message = "Pas de fichier fédéral pour l'année " + annee + " et le canton '" + codeCanton + "'";
+                        RuntimeException exception = new RuntimeException(message);
+                        logger.info(message, exception);
+                        return Optional.empty();
                     }
                 }
             }
         }
-        if (null == fichierFederal) {
-            String message = "Pas de fichier fédéral pour l'année " + annee + " et le canton '" + codeCanton + "'";
-            EmptyResultDataAccessException exception = new EmptyResultDataAccessException(message, 1);
-            logger.info(message, exception);
-            throw exception;
-        }
-
-        LecteurFichierTexteStructureFederale lecteur = new LecteurFichierTexteStructureFederale();
-        lecteur.setCharsetName("ISO-8859-1");
-        lecteur.setFichier(fichierFederal);
-        return lecteur;
-    }
+         return null;
+     }
 
     @Override
     public Set<ICodeTarifaire> rechercherCodesTarifaires(int annee, String codeCanton) {
-        LecteurFichierTexteStructureFederale lecteur = this.creerLecteur(annee, codeCanton);
+        if (Canton.getParCode(codeCanton).isEmpty()) throw new RuntimeException("Le code '" + codeCanton + "' n'est pas un code de canton suisse !!");
         final Set<ICodeTarifaire> codes = new TreeSet<ICodeTarifaire>();
         EnregistrementCallback callback = new EnregistrementCallback() {
             @Override
@@ -112,19 +106,21 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
 
         };
         try {
-            lecteur.lire(callback);
+            Optional<LecteurFichierTexteStructureFederale> lecteur = this.creerLecteur(annee, codeCanton);
+            if (lecteur.isPresent()) {
+                lecteur.get().lire(callback);
+            }
         } catch (IOException ioe) {
             String message = "Exception de lecture I/O dans le fichier " + codeCanton;
             logger.error(message);
-            throw new DataAccessResourceFailureException("message", ioe);
+            throw new RuntimeException("message", ioe);
         }
         return codes;
     }
 
     public List<EnregistrementBareme> rechercherTranches(int annee,
                                                          String codeCanton, final ICodeTarifaire code) {
-        LecteurFichierTexteStructureFederale lecteur = this.creerLecteur(annee, codeCanton);
-        final List<EnregistrementBareme> liste = new LinkedList<EnregistrementBareme>();
+         final List<EnregistrementBareme> liste = new LinkedList<>();
         EnregistrementCallback callback = new EnregistrementCallback() {
             @Override
             public void lectureEnregistrement(EnregistrementBareme enreg) {
@@ -146,11 +142,15 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
             }
         };
         try {
-            lecteur.lire(callback);
-        } catch (IOException ioe) {
+            Optional<LecteurFichierTexteStructureFederale> lecteur = this.creerLecteur(annee, codeCanton);
+            if (lecteur.isPresent()) {
+                lecteur.get().lire(callback);
+            }
+        }
+        catch(IOException ioe) {
             String message = "Exception de lecture I/O dans le fichier " + codeCanton;
             logger.error(message);
-            throw new DataAccessResourceFailureException("message", ioe);
+            throw new RuntimeException("message", ioe);
         }
         Collections.sort(liste, new Comparator<EnregistrementBareme>() {
             @Override
@@ -188,24 +188,41 @@ public class BaremeImpotSourceFichierPlatDao implements BaremeImpotSourceDao {
         return cons.construire();
     }
 
+    private Set<BaremeDisponible> baremeDisponible(String codeCanton) {
+        return IntStream.iterate(2000, n -> n < 2100, n -> n+1)
+                .filter(n -> creerLecteur(n,codeCanton).isPresent())
+                .mapToObj(n -> new BaremeDisponibleImpl(n, codeCanton))
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
     @Override
     public Set<BaremeDisponible> baremeDisponible() {
-        Set<BaremeDisponible> baremes = new HashSet<BaremeDisponible>();
-        for (int annee = 2001; annee < 2100; annee++) {
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            try {
-                Resource[] resources = resolver.getResources("classpath*:" + annee + "/tar*");
-                for (Resource resource : resources) {
-                    String codeCanton = resource.getFilename().substring(5, 7);
-                    baremes.add(new BaremeDisponibleImpl(annee, codeCanton));
-                }
-            } catch (IOException ioe) {
-                // TODO PGI propager une RuntimeException
-                logger.error("Problème lors de la recherche de barèmes fédéraux pour " + annee, ioe);
-            }
-        }
-        return baremes;
+        Set<BaremeDisponible> dispo = baremeDisponible("ge");
+        dispo.addAll(baremeDisponible("fr"));
+        dispo.addAll(baremeDisponible("ag"));
+        dispo.addAll(baremeDisponible("gr"));
+        dispo.addAll(baremeDisponible("vd"));
+
+        return dispo;
     }
+//    @Override
+//    public Set<BaremeDisponible> baremeDisponible() {
+//        Set<BaremeDisponible> baremes = new HashSet<>();
+//        for (int annee = 2001; annee < 2100; annee++) {
+//            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+//            try {
+//                Resource[] resources = resolver.getResources("classpath*:" + annee + "/tar*");
+//                for (Resource resource : resources) {
+//                    String codeCanton = resource.getFilename().substring(5, 7);
+//                    baremes.add(new BaremeDisponibleImpl(annee, codeCanton));
+//                }
+//            } catch (IOException ioe) {
+//                // TODO PGI propager une RuntimeException
+//                logger.error("Problème lors de la recherche de barèmes fédéraux pour " + annee, ioe);
+//            }
+//        }
+//        return baremes;
+//    }
 
 
 }

@@ -5,11 +5,13 @@ package ch.ge.afc.baremeis.service.dao.fichierfederal;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -18,8 +20,7 @@ import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.impotch.util.TypeArrondi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.dao.TypeMismatchDataAccessException;
+
 
 
 import ch.ge.afc.baremeis.service.Sexe;
@@ -32,48 +33,68 @@ import ch.ge.afc.baremeis.service.Sexe;
  */
 public class LecteurFichierTexteStructureFederale {
 
+    public static Optional<LecteurFichierTexteStructureFederale> unLecteurDepuisClasspath(String fichierAvecCheminComplet, String charsetName) {
+        LecteurFichierTexteStructureFederale lecteur = new LecteurFichierTexteStructureFederale(fichierAvecCheminComplet,charsetName);
+        return lecteur.exist() ? Optional.of(lecteur) : Optional.empty();
+    }
+
+
     /**************************************************/
     /****************** Attributs *********************/
     /**************************************************/
     private static BigDecimal UN_CENTIME = new BigDecimal("0.01");
 
     final Logger logger = LoggerFactory.getLogger(LecteurFichierTexteStructureFederale.class);
-    private Resource fichier;
-    private String charsetName;
+    private final String fichierDansClasspathAvecCheminComplet;
+    private final String charsetName;
     private DateFormat dateFmt;
 
     /**************************************************/
     /**************** Constructeurs *******************/
     /**************************************************/
 
-    public LecteurFichierTexteStructureFederale() {
+    private LecteurFichierTexteStructureFederale(String fichierAvecCheminComplet, String charset) {
         super();
         dateFmt = new SimpleDateFormat("yyyyMMdd");
         dateFmt.setTimeZone(TimeZone.getTimeZone("Europe/Zurich"));
+        this.fichierDansClasspathAvecCheminComplet = fichierAvecCheminComplet;
+        this.charsetName = charset;
     }
 
-    /**************************************************/
-    /******* Accesseurs / Mutateurs *******************/
-    /**************************************************/
-
-    public void setFichier(Resource fichier) {
-        this.fichier = fichier;
-    }
-
-    public void setCharsetName(String charsetName) {
-        this.charsetName = charsetName;
-    }
-
-    /**
-     * @return the dateFmt
-     */
-    protected DateFormat getDateFmt() {
-        return dateFmt;
-    }
 
     /**************************************************/
     /******************* Méthodes *********************/
     /**************************************************/
+
+    private ClassLoader getClassLoader() {
+        ClassLoader cl = null;
+        try {
+            cl = Thread.currentThread().getContextClassLoader();
+        }
+        catch (Throwable ex) {}
+        if (cl == null) {
+            cl = LecteurFichierTexteStructureFederale.class.getClassLoader();
+            if (cl == null) {
+                try {
+                    cl = ClassLoader.getSystemClassLoader();
+                }
+                catch (Throwable ex) {
+                }
+            }
+        }
+        return cl;
+    }
+
+    boolean exist() {
+        try {
+            ClassLoader cl = getClassLoader();
+            InputStream is = (cl != null ? cl.getResourceAsStream(fichierDansClasspathAvecCheminComplet) : ClassLoader.getSystemResourceAsStream(fichierDansClasspathAvecCheminComplet));
+            return null != is && new BufferedReader(new InputStreamReader(is,charsetName)).ready();
+        } catch (IOException ioe) {
+            logger.debug("Pas de lecture possible dans 'classpath:" + fichierDansClasspathAvecCheminComplet + "'",ioe);
+        }
+        return false;
+    }
 
     private String sousChaine(String chaine, int posDebut, int posFin) {
         return chaine.substring(posDebut - 1, posFin);
@@ -184,10 +205,10 @@ public class LecteurFichierTexteStructureFederale {
         if ("06".equals(genreTransaction)) {
             traiterLigneSalarie(callback, ligne, numeroLigne);
         } else if ("11".equals(genreTransaction)) {
-            logger.debug("Le fichier " + fichier.getFilename() + " comprend une ligne administrateur ! Ce genre de ligne n'est pas prévu.");
+            logger.debug("Le fichier 'classpath:" + fichierDansClasspathAvecCheminComplet + "' comprend une ligne administrateur ! Ce genre de ligne n'est pas prévu.");
             traiterLigneAdministrateur(callback, ligne, numeroLigne);
         } else if ("12".equals(genreTransaction)) {
-            logger.debug("Le fichier " + fichier.getFilename() + " comprend une ligne commission de perception ! Ce genre de ligne n'est pas prévu.");
+            logger.debug("Le fichier 'classpath:" + fichierDansClasspathAvecCheminComplet + "' comprend une ligne commission de perception ! Ce genre de ligne n'est pas prévu.");
             traiterLigneCommissionPerception(callback, ligne, numeroLigne);
         } else if ("00".equals(genreTransaction)) {
             traiterLigneEnregInitial(callback, ligne, numeroLigne);
@@ -197,23 +218,22 @@ public class LecteurFichierTexteStructureFederale {
     }
 
     private InputStream getInputStream() throws IOException {
-        InputStream stream = null;
-        if (fichier.getFilename().endsWith("zip")) {
-            ZipFile fichierArchive = new ZipFile(fichier.getFile());
-            String nomFichier = fichier.getFilename().replace("zip", "txt");
+        ClassLoader cl = getClassLoader();
+        URL resource = cl.getResource(fichierDansClasspathAvecCheminComplet);
+        InputStream stream = (cl != null ? cl.getResourceAsStream(fichierDansClasspathAvecCheminComplet) : ClassLoader.getSystemResourceAsStream(fichierDansClasspathAvecCheminComplet));
+
+        if (fichierDansClasspathAvecCheminComplet.endsWith("zip")) {
+            ZipFile fichierArchive = new ZipFile(resource.getFile());
+            String nomFichier = fichierDansClasspathAvecCheminComplet.replace("zip", "txt");
             for (Enumeration<? extends ZipEntry> entrees = fichierArchive.entries(); entrees.hasMoreElements(); ) {
                 ZipEntry entree = entrees.nextElement();
-                if (nomFichier.equals(entree.getName())) {
-                    stream = fichierArchive.getInputStream(entree);
+                if (nomFichier.endsWith(entree.getName())) {
+                    return fichierArchive.getInputStream(entree);
                 }
             }
-            if (null == stream)
-                throw new TypeMismatchDataAccessException("Il n'existe pas de fichier " + nomFichier + " dans l'archive " + fichier.getFilename());
-        } else if (fichier.getFilename().endsWith("xz") || fichier.getFilename().endsWith("XZ")) {
-            BufferedInputStream in = new BufferedInputStream(fichier.getInputStream());
-            stream = new XZCompressorInputStream(in);
-        } else {
-            stream = fichier.getInputStream();
+            throw new RuntimeException("Il n'existe pas de fichier " + nomFichier + " dans l'archive 'classpath:" + fichierDansClasspathAvecCheminComplet + "'");
+        } else if (fichierDansClasspathAvecCheminComplet.endsWith("xz") || fichierDansClasspathAvecCheminComplet.endsWith("XZ")) {
+            return new XZCompressorInputStream(new BufferedInputStream(stream));
         }
         return stream;
     }
@@ -227,9 +247,9 @@ public class LecteurFichierTexteStructureFederale {
             try {
                 traiterLigne(callback, ligne, numLigne);
             } catch (ParseException pe) {
-                throw new TypeMismatchDataAccessException("Erreur de lecture dans la ressource " + fichier.getFilename() + " à la ligne " + numLigne, pe);
+                throw new RuntimeException("Erreur de lecture dans la ressource 'classpath:" + fichierDansClasspathAvecCheminComplet + "' à la ligne " + numLigne,pe);
             } catch (NumberFormatException nfe) {
-                throw new TypeMismatchDataAccessException("Erreur de lecture dans la ressource " + fichier.getFilename() + " à la ligne " + numLigne, nfe);
+                throw new RuntimeException("Erreur de lecture dans la ressource 'classpath:" + fichierDansClasspathAvecCheminComplet + "' à la ligne " + numLigne,nfe);
             }
             ligne = reader.readLine();
             numLigne++;

@@ -23,9 +23,9 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 	private Object synchroBaremeDispo = new Object();
 	
 	// Injection de dépendance
-	private ServiceBaremeImpotSource cible;
-	
-	public void setCible(ServiceBaremeImpotSource cible) {
+	private final ServiceBaremeImpotSource cible;
+
+	public ServiceBaremeImpotSourceCache(ServiceBaremeImpotSource cible) {
 		this.cible = cible;
 	}
 

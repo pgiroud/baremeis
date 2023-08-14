@@ -13,11 +13,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.ServiceBaremeImpotSource;
+import ch.ge.afc.baremeis.service.ServiceBaremeImpotSourceCache;
+import ch.ge.afc.baremeis.service.ServiceBaremeImpotSourceImpl;
+import ch.ge.afc.baremeis.service.dao.fichierfederal.BaremeImpotSourceFichierPlatDao;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -108,9 +108,15 @@ public class ExtractionTypeBareme {
 	 * @param args
 	 */
 	public static void main(String[] args) throws IOException {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-		        new String[] {"beansis.xml"});
-		ServiceBaremeImpotSource service = (ServiceBaremeImpotSource)context.getBean("serviceBareme");
+
+
+		BaremeImpotSourceFichierPlatDao dao = new BaremeImpotSourceFichierPlatDao();
+
+		ServiceBaremeImpotSource serviceBaremeSansCache = new ServiceBaremeImpotSourceImpl(dao);
+
+
+		ServiceBaremeImpotSource service = new ServiceBaremeImpotSourceCache(serviceBaremeSansCache);
+
 
 		ExtractionTypeBareme extraction = new ExtractionTypeBareme();
 		extraction.setService(service);

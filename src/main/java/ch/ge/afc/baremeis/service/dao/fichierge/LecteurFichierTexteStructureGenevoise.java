@@ -5,14 +5,15 @@ package ch.ge.afc.baremeis.service.dao.fichierge;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.dao.TypeMismatchDataAccessException;
+
 
 
 
@@ -21,39 +22,64 @@ import org.springframework.dao.TypeMismatchDataAccessException;
  *
  */
 class LecteurFichierTexteStructureGenevoise {
-	
+
+	public static Optional<LecteurFichierTexteStructureGenevoise> unLecteurDepuisClasspath(String fichierAvecCheminComplet, String charsetName) {
+		LecteurFichierTexteStructureGenevoise lecteur = new LecteurFichierTexteStructureGenevoise(fichierAvecCheminComplet,charsetName);
+		return lecteur.exist() ? Optional.of(lecteur) : Optional.empty();
+	}
+
 	/**************************************************/
     /****************** Attributs *********************/
     /**************************************************/
 
 	final Logger logger = LoggerFactory.getLogger(LecteurFichierTexteStructureGenevoise.class);
-	private Resource fichier;
-	private String charsetName;
+	private final String fichierDansClasspathAvecCheminComplet;
+	private final String charsetName;
 	
     /**************************************************/
     /**************** Constructeurs *******************/
     /**************************************************/
 
-	public LecteurFichierTexteStructureGenevoise() {
+	private LecteurFichierTexteStructureGenevoise(String fichierAvecCheminComplet, String charset) {
 		super();
-	}
+		this.fichierDansClasspathAvecCheminComplet = fichierAvecCheminComplet;
+		this.charsetName = charset;	}
 	
-	/**************************************************/
-    /******* Accesseurs / Mutateurs *******************/
-    /**************************************************/
-	
-	public void setFichier(Resource fichier) {
-		this.fichier = fichier;
-	}
-	
-	public void setCharsetName(String charsetName) {
-		this.charsetName = charsetName;
-	}
+
 	
 	/**************************************************/
     /******************* Méthodes *********************/
     /**************************************************/
 
+	private ClassLoader getClassLoader() {
+		ClassLoader cl = null;
+		try {
+			cl = Thread.currentThread().getContextClassLoader();
+		}
+		catch (Throwable ex) {}
+		if (cl == null) {
+			cl = LecteurFichierTexteStructureGenevoise.class.getClassLoader();
+			if (cl == null) {
+				try {
+					cl = ClassLoader.getSystemClassLoader();
+				}
+				catch (Throwable ex) {
+				}
+			}
+		}
+		return cl;
+	}
+
+	boolean exist() {
+		try {
+			ClassLoader cl = getClassLoader();
+			InputStream is = (cl != null ? cl.getResourceAsStream(fichierDansClasspathAvecCheminComplet) : ClassLoader.getSystemResourceAsStream(fichierDansClasspathAvecCheminComplet));
+			return null != is && new BufferedReader(new InputStreamReader(is,charsetName)).ready();
+		} catch (IOException ioe) {
+			logger.debug("Pas de lecture possible dans 'classpath:" + fichierDansClasspathAvecCheminComplet + "'",ioe);
+		}
+		return false;
+	}
 	private String sousChaine(String chaine, int posDebut, int posFin) {
 		return chaine.substring(posDebut - 1, posFin);
 	}
@@ -92,16 +118,18 @@ class LecteurFichierTexteStructureGenevoise {
 	
 	
 	public void lire(EnregistrementGECallback callback) throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(fichier.getInputStream(),charsetName));
+		ClassLoader cl = getClassLoader();
+		InputStream is = (cl != null ? cl.getResourceAsStream(fichierDansClasspathAvecCheminComplet) : ClassLoader.getSystemResourceAsStream(fichierDansClasspathAvecCheminComplet));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is,charsetName));
 		int numLigne = 1;
 		String ligne = reader.readLine(); 
 		while (null != ligne) {
 			try {
 				traiterLigne(callback, ligne,numLigne);
 			} catch (ParseException pe) {
-				throw new TypeMismatchDataAccessException("Erreur de lecture dans la ressource " + fichier.getFilename() + " à la ligne " + numLigne,pe);
+				throw new RuntimeException("Erreur de lecture dans la ressource 'classpath:" + fichierDansClasspathAvecCheminComplet + "' à la ligne " + numLigne,pe);
 			} catch (NumberFormatException nfe) {
-				throw new TypeMismatchDataAccessException("Erreur de lecture dans la ressource " + fichier.getFilename() + " à la ligne " + numLigne,nfe);
+				throw new RuntimeException("Erreur de lecture dans la ressource 'classpath:" + fichierDansClasspathAvecCheminComplet + "' à la ligne " + numLigne,nfe);
 			}
 			ligne = reader.readLine();
 			numLigne++;

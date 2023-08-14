@@ -5,24 +5,16 @@ package ch.ge.afc.baremeis.service.dao.fichierge;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.impotch.bareme.BaremeParTranche;
 import org.impotch.bareme.ConstructeurBareme;
 import org.impotch.util.BigDecimalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.EmptyResultDataAccessException;
+
 
 import static ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE.*;
 
@@ -31,9 +23,9 @@ import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
-import org.impotch.bareme.BaremeTauxEffectifConstantParTranche;
 import org.impotch.util.TypeArrondi;
 
+import static ch.ge.afc.baremeis.service.dao.fichierge.LecteurFichierTexteStructureGenevoise.unLecteurDepuisClasspath;
 import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectif;
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -47,43 +39,23 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
 
     @Override
     public Set<BaremeDisponible> baremeDisponible() {
-        Set<BaremeDisponible> baremes = new HashSet<BaremeDisponible>();
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        for (int annee = 2000; annee < 2100; annee++) {
-            try {
-                Resource[] resources = resolver.getResources("classpath*:" + annee + "/ge/*.txt");
-                if (resources.length > 0) baremes.add(new BaremeDisponibleImpl(annee, "ge"));
-            } catch (IOException ioe) {
-                logger.error("Problème lors de la recherche de barèmes cantonaux GE pour " + annee, ioe);
-                throw new DataAccessResourceFailureException("Problème lors de la recherche de fichier genevois pour l'année " + annee);
-            }
-        }
-        return baremes;
+        return IntStream.iterate(2000, n -> n < 2100, n -> n+1)
+                .filter(n -> creerLecteur(n).isPresent())
+                .mapToObj(n -> new BaremeDisponibleImpl(n, "ge"))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
-    private LecteurFichierTexteStructureGenevoise creerLecteur(int annee) {
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource fichier = null;
-        try {
-            Resource[] resources = resolver.getResources("classpath*:" + annee + "/ge/*.txt");
-            if (resources.length > 0) fichier = resources[0];
-            else
-                throw new DataAccessResourceFailureException("Il n'existe pas de fichier genevois pour l'année " + annee);
-        } catch (IOException ioe) {
-            logger.error("Problème lors de la recherche de barèmes cantonaux GE pour " + annee, ioe);
-            throw new DataAccessResourceFailureException("Problème lors de la recherche de fichier genevois pour l'année " + annee);
-        }
-        if (!fichier.exists()) {
-            String message = "Pas de fichier genevois pour l'année " + annee + ".";
-            EmptyResultDataAccessException exception = new EmptyResultDataAccessException(message, 1);
-            logger.warn(message, exception);
-            throw exception;
-        }
+    private String getNomFichier(int annee) {
+        return new StringBuilder()
+            .append(annee)
+            .append("/ge/bar_is")
+            .append(annee)
+            .append("_ascii.txt")
+                .toString();
+    }
 
-        LecteurFichierTexteStructureGenevoise lecteur = new LecteurFichierTexteStructureGenevoise();
-        lecteur.setCharsetName("ISO-8859-1");
-        lecteur.setFichier(fichier);
-        return lecteur;
+    private Optional<LecteurFichierTexteStructureGenevoise> creerLecteur(int annee) {
+        return  unLecteurDepuisClasspath(getNomFichier(annee),"ISO-8859-1");
     }
 
 
@@ -121,7 +93,7 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
     }
 
     private List<EnregistrementBaremeGE> rechercherTranches(final int annee, final ICodeTarifaire code) {
-        LecteurFichierTexteStructureGenevoise lecteur = this.creerLecteur(annee);
+        LecteurFichierTexteStructureGenevoise lecteur = this.creerLecteur(annee).orElseThrow();
         final List<EnregistrementBaremeGE> liste = new LinkedList<EnregistrementBaremeGE>();
         EnregistrementGECallback callback = new EnregistrementGECallback() {
             @Override
@@ -147,7 +119,7 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
         } catch (IOException ioe) {
             String message = "Exception de lecture I/O dans le fichier";
             logger.error(message);
-            throw new DataAccessResourceFailureException("message", ioe);
+            throw new RuntimeException("message", ioe);
         }
         Collections.sort(liste, new Comparator<EnregistrementBaremeGE>() {
             @Override

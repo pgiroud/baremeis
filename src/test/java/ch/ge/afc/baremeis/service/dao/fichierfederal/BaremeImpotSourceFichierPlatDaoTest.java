@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.EmptyResultDataAccessException;
 
 import org.impotch.bareme.Bareme;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
@@ -24,7 +23,7 @@ public class BaremeImpotSourceFichierPlatDaoTest {
     @Test
     public void baremeCantonBizarre() {
         BaremeImpotSourceDao dao = new BaremeImpotSourceFichierPlatDao();
-        assertThatExceptionOfType(EmptyResultDataAccessException.class).isThrownBy(() -> dao.rechercherCodesTarifaires(2009, "lulu"));
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> dao.rechercherCodesTarifaires(2009, "lulu"));
     }
 
     @Test

@@ -1,22 +1,21 @@
 package ch.ge.afc.baremeis.service;
 
-import org.impotch.bareme.*;
+
+import java.math.BigDecimal;
+import org.junit.jupiter.api.Test;
 import org.impotch.util.BigDecimalUtil;
 import org.impotch.util.TypeArrondi;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-
-import javax.annotation.Resource;
-import java.math.BigDecimal;
+import org.impotch.bareme.BaremeParTranche;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
 
-@SpringJUnitConfig(locations = {"/beansis.xml"})
+import static ch.ge.afc.baremeis.service.ContexteTest.CTX_TST;
+
+
 public class ServiceBaremeISGE2019Test {
 
-    @Resource(name = "serviceBareme")
-    private ServiceBaremeImpotSource service;
+
 
     private BigDecimal obtenirImpot(int revenu, String taux) {
         return TypeArrondi.CINQ_CENTIEMES_LES_PLUS_PROCHES.arrondirMontant(new BigDecimal(revenu).multiply(BigDecimalUtil.parseTaux(taux)));
@@ -25,8 +24,9 @@ public class ServiceBaremeISGE2019Test {
     @Test
     public void premiereTrancheA0() {
         BaremeParTranche bareme = null;
+
         try {
-            bareme = service.obtenirBaremeAnnuel(2019, "ge", "A0");
+            bareme = CTX_TST.getService().obtenirBaremeAnnuel(2019, "ge", "A0");
         } catch (Exception ex) {
             fail("Les barèmes 2019 ne sont pas dans le classpath !!");
         }
@@ -41,7 +41,7 @@ public class ServiceBaremeISGE2019Test {
     public void derniereTrancheA0() {
         BaremeParTranche bareme = null;
         try {
-            bareme = service.obtenirBaremeAnnuel(2019, "ge", "A0");
+            bareme = CTX_TST.getService().obtenirBaremeAnnuel(2019, "ge", "A0");
         } catch (Exception ex) {
             fail("Les barèmes 2019 ne sont pas dans le classpath !!");
         }

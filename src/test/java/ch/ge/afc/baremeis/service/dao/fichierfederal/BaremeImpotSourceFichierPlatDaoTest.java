@@ -4,6 +4,7 @@ package ch.ge.afc.baremeis.service.dao.fichierfederal;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import ch.ge.afc.baremeis.service.dao.CodeTarifaire;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

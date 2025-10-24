@@ -22,11 +22,12 @@ import ch.ge.afc.baremeis.service.BaremeDisponible;
 import ch.ge.afc.baremeis.service.BaremeDisponibleImpl;
 import ch.ge.afc.baremeis.service.ICodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
-import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
-import org.impotch.util.TypeArrondi;
+import ch.ge.afc.baremeis.service.dao.CodeTarifaire;
 
 import static ch.ge.afc.baremeis.service.dao.fichierge.LecteurFichierTexteStructureGenevoise.unLecteurDepuisClasspath;
-import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectif;
+import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectifSansOptimisationDesQueNonNul;
+import static org.impotch.util.TypeArrondi.VINGTIEME_LE_PLUS_PROCHE;
+
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  */
@@ -36,11 +37,15 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
     private static final List<CodeTarifaireGE> ORDRE_CODE_AVANT_2010 = Arrays.asList(A0, B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, I0, I1, I2, I3, I4, I5, I6, I7, I8);
     private static final List<String> ORDRE_CODE = Arrays.asList("A0", "B0", "B1", "B2", "B3", "B4", "B5");
 
+    private boolean fichierExistant(int annee) {
+        return creerLecteur(annee).isPresent();
+    }
 
     @Override
     public Set<BaremeDisponible> baremeDisponible() {
-        return IntStream.iterate(2000, n -> n < 2100, n -> n+1)
-                .filter(n -> creerLecteur(n).isPresent())
+        int anneeProchaine = Calendar.getInstance().get(Calendar.YEAR)+1;
+        return IntStream.iterate(2000, n -> n <= anneeProchaine, n -> n+1)
+                .filter(this::fichierExistant)
                 .mapToObj(n -> new BaremeDisponibleImpl(n, "ge"))
                 .collect(Collectors.toUnmodifiableSet());
     }
@@ -137,7 +142,8 @@ public class BaremeImpotSourceFichierGEPlatDao implements BaremeImpotSourceDao {
             throw new IllegalArgumentException("Le code tarifaire doit être un code genevois !!");
         List<EnregistrementBaremeGE> enreg = rechercherTranches(annee, code);
         // Construction du barème
-        ConstructeurBareme cons = unBaremeATauxEffectif().typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CENTIEMES_LES_PLUS_PROCHES);
+        ConstructeurBareme cons = unBaremeATauxEffectifSansOptimisationDesQueNonNul()
+                .typeArrondiSurChaqueTranche(VINGTIEME_LE_PLUS_PROCHE);
         if (1 < enreg.size()) {
             // 1ère tranche
             EnregistrementBaremeGE premierEnregistrement = enreg.get(0);

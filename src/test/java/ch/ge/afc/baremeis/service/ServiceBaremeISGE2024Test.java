@@ -1,19 +1,23 @@
 package ch.ge.afc.baremeis.service;
 
-import java.math.BigDecimal;
-import org.junit.jupiter.api.Test;
-
+import org.impotch.bareme.BaremeParTranche;
 import org.impotch.util.BigDecimalUtil;
 import org.impotch.util.TypeArrondi;
-import org.impotch.bareme.BaremeParTranche;
+import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+
+import static ch.ge.afc.baremeis.service.ContexteTest.CTX_TST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
-import static ch.ge.afc.baremeis.service.ContexteTest.CTX_TST;
 
-public class ServiceBaremeISGE2022Test {
+public class ServiceBaremeISGE2024Test {
 
-    private static final int ANNEE = 2022;
+    private static final int ANNEE = 2024;
+
+    private BigDecimal obtenirImpot(int revenu, String taux) {
+        return TypeArrondi.CINQ_CENTIEMES_LES_PLUS_PROCHES.arrondirMontant(new BigDecimal(revenu).multiply(BigDecimalUtil.parseTaux(taux)));
+    }
 
     @Test
     public void premiereTrancheA0_tres_grande_valeur_negative() {
@@ -46,7 +50,7 @@ public class ServiceBaremeISGE2022Test {
         } catch (Exception ex) {
             fail("Les barèmes "+ ANNEE + " ne sont pas dans le classpath !!");
         }
-        assertThat(bareme.calcul(BigDecimal.valueOf(27600))).isEqualTo("0.00");
+        assertThat(bareme.calcul(BigDecimal.valueOf(28799))).isEqualTo("0.00");
     }
 
     @Test
@@ -57,8 +61,20 @@ public class ServiceBaremeISGE2022Test {
         } catch (Exception ex) {
             fail("Les barèmes "+ ANNEE + " ne sont pas dans le classpath !!");
         }
-        assertThat(bareme.calcul(BigDecimal.valueOf(27601))).isGreaterThan(BigDecimal.ZERO);
+        assertThat(bareme.calcul(BigDecimal.valueOf(28800))).isGreaterThan(BigDecimal.ZERO);
     }
+
+    @Test
+    public void derniereTrancheA0() {
+        BaremeParTranche bareme = null;
+        try {
+            bareme = CTX_TST.getService().obtenirBaremeAnnuel(ANNEE, "ge", "A0");
+        } catch (Exception ex) {
+            fail("Les barèmes "+ ANNEE + " ne sont pas dans le classpath !!");
+        }
+        assertThat(bareme.calcul(BigDecimal.valueOf(98_106_600))).isEqualByComparingTo(new BigDecimal("41430417.20"));
+    }
+
 
 
 }

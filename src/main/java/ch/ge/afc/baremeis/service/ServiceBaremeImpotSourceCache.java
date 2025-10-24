@@ -78,11 +78,6 @@ public class ServiceBaremeImpotSourceCache implements ServiceBaremeImpotSource {
 		return cible.obtenirBaremeMensuel(annee, codeCanton,codeChoisi);
 	}
 
-	@Override
-	public BaremeParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
-		return obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.UNITE_LA_PLUS_PROCHE);
-	}
-
 	/* (non-Javadoc)
 	 * @see ch.ge.afc.baremeis.service.ServiceBaremeImpotSource#rechercherBareme(int, java.lang.String)
 	 */

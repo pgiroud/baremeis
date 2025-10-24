@@ -21,7 +21,9 @@ import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
 import org.impotch.util.TypeArrondi;
 
 import static ch.ge.afc.baremeis.service.dao.fichierfr.LecteurFichierTexteStructureFribourgeoise.unLecteurDepuisClasspath;
-import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectif;
+import static org.impotch.bareme.ConstructeurBareme.unBaremeATauxEffectifSansOptimisationDesQueNonNul;
+import static org.impotch.util.TypeArrondi.VINGTIEME_LE_PLUS_PROCHE;
+
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  */
@@ -42,7 +44,7 @@ public class BaremeImpotSourceFichierFRPlatDao implements BaremeImpotSourceDao {
             List<EnregistrementBaremeFR> enreg = rechercherTranches(annee, code);
             if (null == enreg) return null;
             // Construction du barème
-            ConstructeurBareme cons = unBaremeATauxEffectif().typeArrondiSurChaqueTranche(TypeArrondi.CINQ_CENTIEMES_LES_PLUS_PROCHES);
+            ConstructeurBareme cons = unBaremeATauxEffectifSansOptimisationDesQueNonNul().typeArrondiSurChaqueTranche(VINGTIEME_LE_PLUS_PROCHE);
             enreg.stream().forEach(enr -> cons.tranche(enr.getMntMinMensu().subtract(BigDecimal.ONE), enr.getMntMaxMensu(), enr.getTaux()));
             EnregistrementBaremeFR dernier = enreg.get(enreg.size() - 1);
             cons.derniereTranche(dernier.getMntMinMensu(), dernier.getTaux());

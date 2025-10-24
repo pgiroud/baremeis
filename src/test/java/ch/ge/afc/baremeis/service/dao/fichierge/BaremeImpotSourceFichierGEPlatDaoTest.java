@@ -34,5 +34,31 @@ public class BaremeImpotSourceFichierGEPlatDaoTest {
 		assertThat(impot).isEqualTo(new BigDecimal("1020.00"));
 	}
 	
-	
+	@Test
+	public void baremeI1() {
+		BaremeImpotSourceDao dao = new BaremeImpotSourceFichierGEPlatDao();
+		Bareme bareme = dao.obtenirBaremeMensuel(2009, "GE", CodeTarifaireGE.I1);
+		BigDecimal revenuAnnuel = new BigDecimal("45900");
+		BigDecimal impotMensuelAttendu = new BigDecimal("281.15");
+
+		BigDecimal revenuMensuel = revenuAnnuel.divide(BigDecimal.valueOf(12));
+		BigDecimal impot = bareme.calcul(revenuMensuel);
+
+		assertThat(impot).isEqualTo(impotMensuelAttendu);
+	}
+
+	@Test
+	public void baremeI2() {
+		BaremeImpotSourceDao dao = new BaremeImpotSourceFichierGEPlatDao();
+		Bareme bareme = dao.obtenirBaremeMensuel(2009, "GE", CodeTarifaireGE.I1);
+		BigDecimal revenuAnnuel = new BigDecimal("511200");
+		BigDecimal impotMensuelAttendu = new BigDecimal("14228.40");
+
+		BigDecimal revenuMensuel = revenuAnnuel.divide(BigDecimal.valueOf(12));
+		BigDecimal impot = bareme.calcul(revenuMensuel);
+
+		assertThat(impot).isEqualTo(impotMensuelAttendu);
+	}
+
+
 }

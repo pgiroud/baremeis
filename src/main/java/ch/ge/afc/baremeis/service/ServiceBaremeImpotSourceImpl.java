@@ -3,16 +3,14 @@
  */
 package ch.ge.afc.baremeis.service;
 
-import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.impotch.util.StringUtil;
-import org.impotch.util.TypeArrondi;
 
 import org.impotch.bareme.BaremeParTranche;
 import ch.ge.afc.baremeis.service.dao.BaremeImpotSourceDao;
-import ch.ge.afc.baremeis.service.dao.fichierfederal.CodeTarifaire;
+import ch.ge.afc.baremeis.service.dao.CodeTarifaire;
 import ch.ge.afc.baremeis.service.dao.fichierge.CodeTarifaireGE;
 
 /**
@@ -55,11 +53,6 @@ public class ServiceBaremeImpotSourceImpl implements ServiceBaremeImpotSource {
 		codeCanton = codeCanton.trim();
 		if (2 != codeCanton.length()) throw new RuntimeException("Le code canton doît être composé de 2 caractères !!");
 		if (Canton.getParCode(codeCanton).isEmpty()) throw new RuntimeException("Le code canton '" + codeCanton + "'n'est pas un code de canton suisse !!");
-	}
-
-	@Override
-	public BaremeParTranche obtenirBaremeAnnuel(int annee, String codeCanton, String code) {
-		return obtenirBaremeMensuel(annee,codeCanton,code).homothetie(BigDecimal.valueOf(12), TypeArrondi.UNITE_LA_PLUS_PROCHE);
 	}
 
 	

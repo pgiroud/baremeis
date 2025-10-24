@@ -5,15 +5,17 @@ package ch.ge.afc.baremeis.service.dao.fichierfederal;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Objects;
 
 import ch.ge.afc.baremeis.service.Sexe;
-import org.impotch.util.BigDecimalUtil;
+import ch.ge.afc.baremeis.service.dao.CodeTarifaire;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  */
 public class EnregistrementBareme {
 
+    // TODO PGI A transformer en record
     public static BigDecimal TROU_DEBUT_TRANCHE = new BigDecimal("0.05");
 
     private GenreTransaction genre;
@@ -112,4 +114,16 @@ public class EnregistrementBareme {
         return taux;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EnregistrementBareme that = (EnregistrementBareme) o;
+        return nbreEnfant == that.nbreEnfant && genre == that.genre && Objects.equals(codeCanton, that.codeCanton) && Objects.equals(codeTarifaire, that.codeTarifaire) && Objects.equals(dateInitialeValidite, that.dateInitialeValidite) && Objects.equals(revenuImposable, that.revenuImposable) && Objects.equals(echelonTarifaire, that.echelonTarifaire) && sexe == that.sexe && Objects.equals(montantImpot, that.montantImpot) && Objects.equals(taux, that.taux);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(genre, codeCanton, codeTarifaire, dateInitialeValidite, revenuImposable, echelonTarifaire, sexe, nbreEnfant, montantImpot, taux);
+    }
 }

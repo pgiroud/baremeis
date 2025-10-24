@@ -16,15 +16,14 @@ import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
-import org.impotch.util.TypeArrondi;
+import ch.ge.afc.baremeis.service.dao.CodeTarifaire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 
 
 import ch.ge.afc.baremeis.service.Sexe;
-
 
 /**
  * Attention, non thread safe !!
@@ -44,7 +43,8 @@ public class LecteurFichierTexteStructureFederale {
     /**************************************************/
     private static BigDecimal UN_CENTIME = new BigDecimal("0.01");
 
-    final Logger logger = LoggerFactory.getLogger(LecteurFichierTexteStructureFederale.class);
+    final static Logger logger = LoggerFactory.getLogger(LecteurFichierTexteStructureFederale.class);
+
     private final String fichierDansClasspathAvecCheminComplet;
     private final String charsetName;
     private DateFormat dateFmt;
@@ -168,7 +168,7 @@ public class LecteurFichierTexteStructureFederale {
         BigDecimal revenuImposable = montantAvecCentime(ligne, 25, 33);
         // Attention, certain commence les tranches avec 5 cts de plus et d'autres avec 1 franc de plus
         // Il aurait été beaucoup plus malin de mettre les montants en fin de tranche !!
-        revenuImposable = TypeArrondi.UNITE_INF.arrondirMontant(revenuImposable.subtract(UN_CENTIME));
+        // revenuImposable = TypeArrondi.UNITE_INF.arrondirMontant(revenuImposable.subtract(UN_CENTIME));
         enreg.setRevenuImposable(revenuImposable);
         enreg.setEchelonTarifaire(montantAvecCentime(ligne, 34, 42));
         enreg.setSexe(Sexe.getParCode(ligne.charAt(44)));
@@ -245,11 +245,10 @@ public class LecteurFichierTexteStructureFederale {
         String ligne = reader.readLine();
         while (null != ligne) {
             try {
+                // logger.debug();
                 traiterLigne(callback, ligne, numLigne);
-            } catch (ParseException pe) {
-                throw new RuntimeException("Erreur de lecture dans la ressource 'classpath:" + fichierDansClasspathAvecCheminComplet + "' à la ligne " + numLigne,pe);
-            } catch (NumberFormatException nfe) {
-                throw new RuntimeException("Erreur de lecture dans la ressource 'classpath:" + fichierDansClasspathAvecCheminComplet + "' à la ligne " + numLigne,nfe);
+            } catch (ParseException | NumberFormatException ex) {
+                throw new RuntimeException("Erreur de lecture dans la ressource 'classpath:" + fichierDansClasspathAvecCheminComplet + "' à la ligne " + numLigne,ex);
             }
             ligne = reader.readLine();
             numLigne++;
